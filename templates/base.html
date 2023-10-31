@@ -1,0 +1,157 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hydro-M</title>
+    <link rel="icon" type="image/png" sizes="8X8" href="{% static  'hydromapp/images/logo.png' %}">
+
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/boxicons@latest/css/boxicons.min.css">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+
+    <link rel="stylesheet" href="{% static 'hydromapp/css/style.css' %}">
+
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script src="{% static 'hydromapp/js/chart.js' %}"></script>
+    <script src="{% static 'hydromapp/js/mv-chart.js' %}"></script>
+
+
+</head>
+<body onload="initClock()">
+    
+    <!--mv Navigation bar-->
+    <header>
+        
+        <div>
+            <div class="bx bx-menu" id="menu-icon"></div>
+
+            <a href="{% url 'home' %}" class="logo"><img src="{% static 'hydromapp/images/logo.png' %}" alt="Hydro-M" ></a>
+        </div>
+
+        <ul class="navbar">
+            <li><a href="{% url 'home' %}" {% if request.resolver_match.url_name == 'home' %}class="active"{% endif %}>Dash Board</a></li>
+            <li><a href="./isimba-dam-system-alarms.html" class="cascade">System Alarms</a></li>
+            <li><a href="{% url 'about' %}" {% if request.resolver_match.url_name == 'about' %}class="active"{% endif %}>About Us</a></li>
+            <li><a href="{% url 'contact' %}" {% if request.resolver_match.url_name == 'contact' %}class="active"{% endif %}>Contact Us</a></li>
+            <li><a href="{% url 'download' %}" {% if request.resolver_match.url_name == 'download=""' %}class="active"{% endif %}>Download Data</a></li>
+            <li><a href="{% url 'help' %}" {% if request.resolver_match.url_name == 'help' %}class="active"{% endif %}>Help</a></li>
+        </ul>
+
+        <div class="main">
+            <a href="#" class="user"><i class="ri-user-fill"></i>Sign In</a>
+        </div>
+   
+    </header>
+
+    <!--Mobile view select Dam
+        <div class="select-dam">
+            <img src="{% static 'hydromapp/images/dam.png' %}" style="width: 60px;">
+            <h3>Select a Dam Below</h3>
+            <ul class="dam-list">
+                <li><a href="#">Lake Nalubaale (Jinja Pier)</a></li>
+            </ul>
+        </div>
+        -->
+
+    <!--Dams on the CASCADE-->
+    <div class="side-bar" id="side-bar">
+    
+        <ul>
+            <li>
+                <img src="{% static 'hydromapp/images/dam.png' %}" alt="">
+                <p>Lake Nalubaale <br> Jinja Pier </p>
+                <p id="dam-paragraph">Water level: 1500mm</p>
+            </li>
+
+        
+            {% for dam in dams %}
+            <li>
+                <!-- Sidebar content for each dam -->
+                <a href="{% url 'dam_realtime_view' dam.id %}">
+                    <img src="{% static 'hydromapp/images/dam.png' %}" alt="">
+                    <p>{{ dam.name }}</p>
+                    <p id="dam-paragraph">Water level: {{ dam.waterlevel }}mm <br> Dispatch: {{ dam.dispatch }}MW <br> Discharge: {{ dam.discharge }} m<sup>3</sup>/s</p>
+                </a>
+            </li>
+            {% endfor %}
+            
+            </ul>
+
+    </div>
+
+    <!--Side bar right-->
+    <div class="card">
+        <!--Side bar right search bar-->
+        <form>
+            <input type="text" placeholder="Search dam reserviors">
+            <i class="fa fa-search"></i>
+        </form>
+
+        <!--Side bar right categories-->
+        <div class="categories">
+            <h4>Monitoring Category</h4>
+            <ul>
+                <li class="active-cat"><a href="#">Real-time</a></li>
+                <li> <a href="#">GIS Monitoring</a></li>
+                <li><a href="#"></a>Predictions</a></li>
+            </ul>
+        </div>
+
+        <!--Side bar right Alarms-->
+        <div class="alarms">
+            <a href="#">Alarms (5)</a>
+        </div>
+        
+        <div class="side-notifications">
+            <ul>
+                <li>
+                    <div class="bell-notification">
+                        <i class='bx bxs-bell'></i>
+                        <h6>Nalubaale HPP <br> The water level has passed the normal and expected level.</h6>
+                    </div>
+                </li>
+                <li>
+                    <div class="bell-notification">
+                        <i class='bx bxs-bell'></i>
+                        <h6>Kiira HPP <br> Reservior past active volume just as expected.</h6>
+                    </div>
+                </li>
+            </ul>
+            <a href="#">Show more...</a>
+            
+            
+        </div>
+           
+    </div>
+    
+    {% block content %}
+
+    {% endblock %}
+      
+    <!--Footer-->
+    <footer>
+        <div class="blue-stripe"></div>
+        <div class="footer-content">
+          <p>2023     Hydro-M, All Rights Reserved</p>
+        </div>
+    </footer>
+
+    <!--js link-->
+   
+
+    <script src="https://canvasjs.com/assets/script/jquery-1.11.1.min.js"></script>
+    <script src="https://cdn.canvasjs.com/jquery.canvasjs.min.js"></script>
+
+    <script type="text/javascript" src="{% static 'hydromapp/js/script.js' %}"></script>
+
+</body>
+</html>

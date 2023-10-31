@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block content %}
+<!--dam real time data Content-->
+
+<!--Drop-down for dams-->
+<div class="drop-down">
+    <select id="dam-select">
+        <option value="#" disabled selected>{{dam.name }}- Status</option>
+      </select>
+</div>
+
+<!--Real time monitoring slider-->
+<div class="isimba-slider">
+    <div class="column-wrapper">
+
+        <div class="column column-1">
+            <div class="isimba-rtm-card">
+                <div class="isimba-rtm-card">
+                    <h4>
+                        Real-time <br> monitoring
+                    </h4>
+                    <div class="date-time">
+                        <div class="date">
+                            <span id="dayname">Day</span>,
+                            <span id="month">Month</span>
+                            <span id="daynum">00</span>,
+                            <span id="year">Year</span>
+                        </div>
+                        <div class="time">
+                            <span id="hour">00</span>:
+                            <span id="minutes">00</span>:
+                            <span id="seconds">00</span>
+                            <span id="period">AM</span>
+                        </div>
+                    </div>
+                    
+                </div>
+            </div>
+        </div>
+
+        <div class="column dam-column">
+            <div class="dam-carousel">
+                <div class="dam-slider">
+                    <section id="isimba-sec1">
+                        <div class="slider-column">
+                            <div class="isimba-column">
+                                <div class="isimba-sc-card">
+                                    <h3>{{dam.RealTimeSensorData.waterlevel}}mm</h3>
+                                    <p>Water Level</p>
+                                </div>
+                                <div class="isimba-sc-card">
+                                    <h3>{{dam.RealTimeSensorData.dispatch}}MW</h3>
+                                    <p>Dispatch</p>
+                                </div>
+                            </div>
+                            <div class="isimba-column">
+                                <div class="isimba-sc-card">
+                                    <h3>{{dam.RealTimeSensorData.discharge}}m <sup>3</sup>/s</h3>
+                                    <p>Discharge</p>
+                                </div>
+                                <div class="isimba-sc-card">
+                                    <h3>{{dam.RealTimeSensorData.temperature}}&deg;C</h3>
+                                    <p>Temperature</p>
+                                </div>
+                            </div>
+                            <div class="isimba-column">
+                                <div class="sc-card">
+                                    <h3>{{dam.RealTimeSensorData.humidity}}%</h3>
+                                    <p>Humidity</p>
+                                </div>
+                                <div class="sc-card">
+                                    <h3>{{dam.RealTimeSensorData.precipitation}}mm</h3>
+                                    <p>Precipitation</p>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--Graphs-->
+<div class="card-container">
+    <div class="isimba-card">
+        <div class="isimba-card-header">
+        <h3>Water Level</h3>
+        </div>
+        <div class="isimba-card-content">
+            <div id="chart_div1" style="width: 100%;"></div>
+        </div>
+    </div>
+    <div class="isimba-card">
+        <div class="isimba-card-header">
+        <h3>Dispatch</h3>
+        </div>
+        <div class="isimba-card-content">
+            <div id="chart_div2" style="width: 100%;"></div>
+        </div>
+    </div>
+</div>
+<div class="card-container cc2">
+    <div class="isimba-card">
+        <div class="isimba-card-header">
+        <h3>Temperature</h3>
+        </div>
+        <div class="isimba-card-content">
+            <div id="chart_div3" style="width: 100%;"></div>
+        </div>
+    </div>
+    <div class="isimba-card">
+        <div class="isimba-card-header">
+        <h3>Precipitation</h3>
+        </div>
+        <div class="isimba-card-content">
+            <div id="chart_div4" style="width: 100%;"></div>
+        </div>
+    </div>
+</div>
+<div class="card-container cc3">
+    <div class="isimba-card">
+        <div class="isimba-card-header">
+        <h3>Discharge</h3>
+        </div>
+        <div class="isimba-card-content">
+            <div id="chart_div5" style="width: 100%;"></div>
+        </div>
+    </div>
+    <div class="isimba-card">
+        <div class="isimba-card-header">
+        <h3>Humidity</h3>
+        </div>
+        <div class="isimba-card-content">
+            <div id="chart_div6" style="width: 100%;"></div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

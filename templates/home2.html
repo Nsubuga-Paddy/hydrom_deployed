@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="side-bar2">
+    <!--Real time monitoring card-->
+    <div class="rt-monitoring">
+        <div class="column-wrapper">
+            <div class="column column-1">
+                <div class="rtm-card">
+                    <h4>
+                        Real-time <br> monitoring
+                    </h4>
+                    <div class="date-time">
+                        <div class="date">
+                            <span id="dayname">Day</span>,
+                            <span id="month">Month</span>
+                            <span id="daynum">00</span>,
+                            <span id="year">Year</span>
+                        </div>
+                        <div class="time">
+                            <span id="hour">00</span>:
+                            <span id="minutes">00</span>:
+                            <span id="seconds">00</span>
+                            <span id="period">AM</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="column column-2">
+                <div class="carousel4">
+                    <div class="slider4">
+                        {% for dam in dams %}
+                            <section id="sec16">
+                                <div class="item">
+                                    <h4 class="hpp">{{ dam.name}} - Status</h4>
+                                    <div class="slider-column1">
+                                        <div class="column">
+                                        <div class="sc-card">
+                                            <h3>{{ dam.RealTimeSensorData.waterlevel }}mm</h3>
+                                            <p>Current Water Level</p>
+                                        </div>
+                                        <div class="sc-card">
+                                            <h3>{{ dam.RealTimeSensorData.humidity }}%</h3>
+                                            <p>Humidity</p>
+                                        </div>
+                                        </div>
+                                        <div class="column">
+                                        <div class="sc-card">
+                                            <h3>{{ dam.RealTimeSensorData.dispatch }}MW</h3>
+                                            <p>Dispatch</p>
+                                        </div>
+                                        <div class="sc-card">
+                                            <h3>{{ dam.RealTimeSensorData.temperature }}&deg;C</h3>
+                                            <p>Temperature</p>
+                                        </div>
+                                        </div>
+                                        <div class="column">
+                                        <div class="sc-card">
+                                            <h3>{{ dam.RealTimeSensorData.discharge }}m <sup>3</sup>/s</h3>
+                                            <p>Discharge</p>
+                                        </div>
+                                        <div class="sc-card">
+                                            <h3>{{ dam.RealTimeSensorData.precipitation }}mm</h3>
+                                            <p>Precipitation</p>
+                                        </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </section>
+                        {% endfor %}
+                    </div>
+                    <div class="controls4">
+                        <span class="material-symbols-outlined arrow left left4">navigate_before </span>
+                        <span class="material-symbols-outlined arrow right right4">navigate_next </span>
+
+                        <ul>
+                            <li class="selected4"></li>
+                            <li></li>
+                            <li></li>
+                            <li></li>
+                            <li></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>    
+
+    <!--Prediction monitoring card-->
+    <div class="rt-prediction">
+        <div class="column-wrapper">
+
+            <div class="column column-1">
+                <div class="rtm-card" style="height: 240px;">
+                    <h4>
+                        Water Level <br> predictions
+                    </h4>
+                </div>
+            </div>
+
+            <div class="column column-2">
+                <div class="carousel2">
+                    <div class="slider2">
+                        {% for dam in dams %}
+                        <section id="sec6">
+                            <div class="item">
+                                <h4 class="hpp">{{ dam.name }} - Status</h4>
+                                <div id="chartContainer{{ forloop.counter }}" style="height: 175px; width: 90%; margin-left: 63px;"></div>
+                            </div>
+                        </section>
+                        {% endfor %}
+                    </div>
+
+                    <div class="controls2">
+                        <span class="material-symbols-outlined arrow left left2">navigate_before </span>
+                        <span class="material-symbols-outlined arrow right right2">navigate_next </span>
+                        
+                        <ul>
+                            <li class="selected2"></li>
+                            <li></li>
+                            <li></li>
+                            <li></li>
+                            <li></li>
+                        </ul>
+                </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!--Remote Sensing card-->
+    <div class="remote-sensing">
+        <div class="column-wrapper">
+            <div class="column column-1">
+                <div class="rtm-card">
+                    <h4>
+                        GIS <br> monitoring
+                    </h4>
+                    
+                </div>
+            </div>
+
+            <div class="column column-2">
+            <div class="carousel3">
+                    <div class="slider3">
+                        {% for dam in dams %}
+                        <section id="sec11">
+                            <div class="item">
+                                <h4 class="hpp">{{ dam.name }} - Status</h4>
+                                <div class="slider-column1">
+                                    <div class="column">
+                                    <div class="sc-card">
+                                        <h3>{{ dam.RemoteSensingData.waterlevel }}mm</h3>
+                                        <p>Current Water Level</p>
+                                    </div>
+                                    <div class="sc-card">
+                                        <h3>{{ dam.RemoteSensingData.humidity }}%</h3>
+                                        <p>Humidity</p>
+                                    </div>
+                                    </div>
+                                    <div class="column">
+                                    <div class="sc-card">
+                                        <h3>{{ dam.RemoteSensingData.precipitation }}mm</h3>
+                                        <p>Precipitation</p>
+                                    </div>
+                                    <div class="sc-card">
+                                        <h3>{{ dam.RemoteSensingData.temperature }}&deg;C</h3>
+                                        <p>Temperature</p>
+                                    </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+                        {% endfor %}
+                    </div>
+                    <div class="controls3">
+                        <span class="material-symbols-outlined arrow left left3">navigate_before </span>
+                        <span class="material-symbols-outlined arrow right right3">navigate_next </span>
+                        
+                        <ul>
+                            <li class="selected3"></li>
+                            <li></li>
+                            <li></li>
+                            <li></li>
+                            <li></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

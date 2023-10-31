@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+
+<div class="abouts-us-content">
+    <img src="{% static 'hydromapp/images/blue-bubbles.png' %}">
+
+    <p class="about-us">About Us</p>
+    <p>
+        Under the ownership of UEGCL, Hydro-M is a waterway and level monitoring system that helps to extract insights of how climatic conditions affect hydro power generation. <br>
+    </p>
+    <p>
+        Hydro-M uses machine learning algorithms to make predictions of water levels in dam reserviors along the CASCADE. It is also a system that shows cascaded dams activities 
+        i.e. dispatch and discharge in realtime.
+    </p>
+    <p>
+        You have any questions! <br>
+        Feel free to <a href="{% url 'contact' %}">Contact Us</a>
+    </p>
+</div>
+
+{% endblock %}
