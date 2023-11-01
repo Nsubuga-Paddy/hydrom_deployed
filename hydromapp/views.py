@@ -39,22 +39,38 @@ def help(request):
 #Real time view
 def dam_realtime_view(request, dam_id):
     dams = Dam.objects.order_by('order')
-    context = {'dams': dams}
-    
     dam = get_object_or_404(Dam, pk=dam_id)
-    context['dam'] = dam
+    context = {
+        'dams': dams,
+        'current_dam_id': dam_id,
+        'dam' : dam,
+        }
 
     return render (request, 'dam_realtime.html', context)
 
 #Remote sensing view
 def dam_gis_view(request, dam_id):
     dams = Dam.objects.order_by('order')
-    context = {'dams': dams}
-    
     dam = get_object_or_404(Dam, pk=dam_id)
-    context['dam'] = dam
+    context = {
+        'dams': dams,
+        'current_dam_id': dam_id,
+        'dam' : dam,
+        }
     
     return render (request, 'dam_gis.html', context)
+
+#Predictions view
+def dam_pred_view(request, dam_id):
+    dams = Dam.objects.order_by('order')
+    dam = get_object_or_404(Dam, pk=dam_id)
+    context = {
+        'dams': dams,
+        'current_dam_id': dam_id,
+        'dam' : dam,
+        }
+    
+    return render (request, 'dam_pred.html', context)
 
 
 #Trigger for notifcations

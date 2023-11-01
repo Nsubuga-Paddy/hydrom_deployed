@@ -983,6 +983,166 @@ margin: 10px;
     margin-top: 41px;
     margin-bottom: 128px;
 }
+
+/*GIS CSS*/
+#isimba-gis-sec1 {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-left: 113px;
+    margin-top: -15px;
+}
+.cc2-remote{
+    margin-top: 41px;
+    margin-bottom: 131px;
+}
+
+/*Predictions CSS*/
+.isimba-pred-card{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    margin-top: 0;
+    margin-left: 0;
+    width: 422px;
+    height: 117px;
+    background: var(--main-color);
+}
+.isimba-pred-slider{
+    width: 58.8rem;
+    height: 117px;
+    position: relative;
+    align-content: flex-start;
+    margin-top: 94px;
+    margin-left: 17px;
+    /*overflow: scroll;*/
+    box-shadow: 1.5px 1.5px 1.5px 1.5px rgba(0.2,0.2,0.2,0.2);
+}
+.isimba-pred-card {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+  
+  .pred-column {
+    flex: 1; /* Distribute available space equally between columns */
+    padding: 20px;
+  }
+  
+  .pred-column:first-child {
+    border-right: 3px solid white; /* Right border for the first column */
+  }
+  
+  .pred-column h2 {
+    margin-top: 0;
+  }
+  .pred-sc-card{
+    margin-bottom: 10px;
+    color: var(--bg-color);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    width: 117px;
+    height: 45px;
+    padding: 10px;
+    margin-left: 20px;
+}
+.pred-sc-card h3{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-bottom: 1.5px solid var(--bg-color);
+    font-size: 25px;
+}
+.pred-sc-card h3 span{
+    font-size: 15px;
+    padding: 12px;
+}
+.pred-sc-card p{
+    font-size: 15px;
+}
+.pred-isimba-card {
+    flex: 1;
+    background-color: #fff;
+    padding: 20px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    margin: 10px;
+    margin-top: 40px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    height: 380px;
+}
+#chart-container{
+    width: 95%;
+    height: 300px;
+    margin-top: 0px;
+    margin-bottom: 10px;
+}
+.real-pred-slider{
+    width: 58.8rem;
+    height: 117px;
+    position: relative;
+    align-content: flex-start;
+    margin-top: 186px;
+    margin-left: 13px;
+    margin-bottom: 52px;
+    /*overflow: scroll;*/
+    box-shadow: 1.5px 1.5px 1.5px 1.5px rgba(0.2,0.2,0.2,0.2);
+}
+.pred-rtm-card h4{
+    margin-bottom: 0;
+    font-size: 1.2rem;
+    color: var(--bg-color);
+    width: 150px;
+    height: 117px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding-bottom: 5px;
+    text-align: center;
+    background-color: var(--main-color);
+}
+.pred-item{
+    margin-left: 182px;
+}
+.pred-slider-column1{
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    margin-top: -106px;
+    margin-left: -77px;
+}
+.pred-sc-card2{
+    margin-bottom: 1px;
+    background: var(--main-color);
+    color: var(--bg-color);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    border-radius: 20px;
+    width: 180px;
+    height: 92px;
+    padding: 10px;
+    margin-left: 67px;
+}
+.pred-sc-card2 p{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-bottom: 1.5px solid var(--bg-color);
+    font-size: 15px;
+    padding-top: 4px;
+    padding-bottom: 4px;
+}
+.pred-sc-card2 h4{
+    font-size: 20px;
+}
+
 /*End of large screen CSS*/
 }
 

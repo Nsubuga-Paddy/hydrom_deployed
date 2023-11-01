@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+
+<!--Predictions monitoring slider-->
+<div class="isimba-pred-slider">
+    <div class="column-wrapper">
+
+        <div class="column column-1">
+            <div class="isimba-pred-card">
+                <div class="pred-column">
+                    <div class="pred-sc-card">
+                        <h3>4000mm</h3>
+                        <p>Current Water Level</p>
+                    </div>
+                  </div>
+                  <div class="pred-column">
+                    <div class="pred-sc-card">
+                        <h3>20% <span> increment</span></h3>
+                        <p style="font-size: 15px;text-align: left;width: max-content;">
+                            Predicted water level in <br> the next 4 hours
+                        </p>
+                    </div>
+                  </div>
+            </div>
+        </div>
+
+        <div class="column dam-column">
+            <h3>Prediction Status</h2>
+            <p>
+                Water level in the reservior is predicted to increase by 20%
+                of the current water level in the next 4 hours
+            </p>
+        </div>
+    </div>
+</div>
+
+<!--Graphs-->
+<div class="card-container">
+    <div class="pred-isimba-card">
+        <div class="isimba-card-header">
+        <h3>{{dam.name}} Water Level Prediction Chart</h3>
+        </div>
+        <div class="isimba-card-content">
+            <div id="chart-container" style="height: 300px;"></div>
+        </div>
+    </div>
+</div>
+
+<!--Real time prediction values-->
+<div class="real-pred-slider">
+    <div class="pred-rtm-card">
+        <h4>
+            Real-time <br> Prediction <br> Variables
+        </h4>
+    </div>
+    <div class="pred-item">
+        <div class="pred-slider-column1">
+            <div class="column">
+            <div class="pred-sc-card2" style="width: 156px; margin-left: 60px;">
+                <p>Discharge from <br> Bujjagali HPP</p>
+                <h4>1500m <sup>3</sup>/s</h4>
+            </div>
+            </div>
+            <div class="column">
+                <div class="pred-sc-card2" style="width: 198px; margin-left: 24px;">
+                    <p>Environmental Temp. <br>at Isimba reservior</p>
+                    <h4>20&deg;C</h4>
+                </div>
+            </div>
+            <div class="column">
+                <div class="pred-sc-card2" style="width: 166px; margin-left: 21px;">
+                    <p>Humidity at<br> Isimba reservior</p>
+                    <h4>20%</h4>
+                </div>
+            </div>
+            <div class="column">
+                <div class="pred-sc-card2" style="width: 166px; margin-left: 21px;">
+                    <p>Precipitation <br> around Isimba HPP</p>
+                    <h4>20%</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+</div> 
+
+{% endblock %}

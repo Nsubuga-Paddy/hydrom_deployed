@@ -100,9 +100,15 @@
         <div class="categories">
             <h4>Monitoring Category</h4>
             <ul>
+                {% if current_dam_id %}
+                <li class="active-cat"><a href="{% url 'dam_realtime_view' current_dam_id %}">Real-time</a></li>
+                <li> <a href="{% url 'dam_gis_view' current_dam_id %}">GIS Monitoring</a></li>
+                <li><a href="#"></a>Predictions</a></li>
+                {% else %}
                 <li class="active-cat"><a href="#">Real-time</a></li>
                 <li> <a href="#">GIS Monitoring</a></li>
                 <li><a href="#"></a>Predictions</a></li>
+                {% endif %}
             </ul>
         </div>
 
