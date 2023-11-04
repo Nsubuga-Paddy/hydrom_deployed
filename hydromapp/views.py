@@ -1,4 +1,4 @@
-from .models import Dam, RealTimeSensorData, Notification
+from .models import Dam, RealTimeSensorData, Notification, RemoteSensingData
 
 #Importing random sensor data
 from django.http import JsonResponse
@@ -6,6 +6,7 @@ import random
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse
 from datetime import datetime, timedelta
+import requests
 
 
 # create a new view that retrieves the dams from the database and passes them to a context variable.
@@ -48,17 +49,58 @@ def dam_realtime_view(request, dam_id):
 
     return render (request, 'dam_realtime.html', context)
 
+
 #Remote sensing view
 def dam_gis_view(request, dam_id):
     dams = Dam.objects.order_by('order')
     dam = get_object_or_404(Dam, pk=dam_id)
+
+    # Check if the dam has latitude and longitude coordinates
+    if dam.latitude is not None and dam.longitude is not None:
+        # API endpoint for OpenWeatherMap
+        api_key = 'd1b2cbbdbab1e370647d435e68edaf66'
+        api_endpoint = f'http://api.openweathermap.org/data/2.5/weather'
+        params = {
+            'lat': dam.latitude,
+            'lon': dam.longitude,
+            'units': 'standard ',  # You can adjust units as needed
+            'appid': api_key,
+        }
+
+        # Make the API request
+        response = requests.get(api_endpoint, params=params)
+
+        if response.status_code == 200:
+            weather_data = response.json()
+            
+            # Extract relevant weather information
+            temperature = weather_data['main']['temp']
+            humidity = weather_data['main']['humidity']
+            precipitation = weather_data['precipitation']['1h'] if 'precipitation' in weather_data else 0
+
+            context = {
+                'dams': dams,
+                'current_dam_id': dam_id,
+                'dam': dam,
+                'temperature': temperature,
+                'humidity': humidity,
+                'precipitation': precipitation,
+            }
+            return render(request, 'dam_gis.html', context)
+
+    remote_sensing_data = RemoteSensingData.objects.filter(dam=dam).latest('timestamp')
+
     context = {
         'dams': dams,
         'current_dam_id': dam_id,
-        'dam' : dam,
-        }
-    
-    return render (request, 'dam_gis.html', context)
+        'dam': dam,
+        'remote_sensing_data':remote_sensing_data,
+        'temperature': None,
+        'humidity': None,
+        'precipitation': None,
+    }
+    return render(request, 'dam_gis.html', context)
+
 
 #Predictions view
 def dam_pred_view(request, dam_id):

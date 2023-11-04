@@ -9,6 +9,10 @@ class Dam(models.Model):
     active_vol = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
     order = models.PositiveIntegerField()
 
+
+    latitude = models.DecimalField(max_digits=9, decimal_places=6, blank=True, null=True)
+    longitude = models.DecimalField(max_digits=9, decimal_places=6, blank=True, null=True)
+    
     def __str__(self):
         return self.name
 
