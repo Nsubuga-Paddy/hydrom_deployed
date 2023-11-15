@@ -44,9 +44,34 @@ class Prediction(models.Model):
 
 #notifications model that allows notifications based on sensor data
 class Notification(models.Model):
+
+    PRIORITY_CHOICES = (
+        ('low', 'Low'),
+        ('medium', 'Medium'),
+        ('high', 'High'),
+    )
+
     dam = models.ForeignKey(Dam, on_delete=models.CASCADE)
-    sensor_value = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
-    note_msg = models.TextField(default="")
+    priority = models.CharField(max_length=6, choices=PRIORITY_CHOICES, default='low')
+    custom_message_discharge = models.TextField(blank=True)
+    custom_message_below_active = models.TextField(blank=True)
+    custom_message_above_active = models.TextField(blank=True)
 
     def __str__(self):
-        return f"{self.dam.name} - {self.sensor_value}"  
+        active_volume = self.dam.active_vol
+        if self.sensor_value > active_volume:  # Define the upper limit for your use case
+            message = self.custom_message_above_active
+        elif self.sensor_value < active_volume:  # Define the lower limit for your use case
+            message = self.custom_message_below_active
+        else:
+            # You can set a default message or leave it blank if there is no condition met
+            message = "Sensor value within normal range."
+
+        return f"{self.dam.name} - {message}" 
+    
+    #def send_notification(self):
+        #subject = f'Notification - {self.dam.name}'
+        #message = self.note_msg
+        #email_from = settings.EMAIL_HOST_USER
+        #recipient_list = [user.email for user in self.dam.users.all()]  # Assuming `users` is a related field for users associated with a dam.
+        #send_mail(subject, message, email_from, recipient_list)
