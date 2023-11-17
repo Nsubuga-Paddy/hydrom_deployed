@@ -8,41 +8,28 @@ from django.http import HttpResponse
 from datetime import datetime, timedelta
 import requests
 
+from .forms import DamSelectionForm
+
 
 # create a new view that retrieves the dams from the database and passes them to a context variable.
 
 
 def home_view(request):
-    dams = Dam.objects.all()
-    context = {'dams': dams}
-    return render(request, 'home2.html', context)
+    return render(request, 'home2.html')
 
 def about_us(request):
-    dams = Dam.objects.order_by('order')
-    context = {'dams': dams}
-    return render(request, 'about-us.html', context)
+    return render(request, 'about-us.html')
 
 def contact_us(request):
-    dams = Dam.objects.order_by('order')
-    context = {'dams': dams}
-    return render(request, 'contact-us.html', context)
-
-def download_data(request):
-    dams = Dam.objects.order_by('order')
-    context = {'dams': dams}
-    return render(request, 'download-data.html', context)
+    return render(request, 'contact-us.html')
 
 def help(request):
-    dams = Dam.objects.order_by('order')
-    context = {'dams': dams}
-    return render(request, 'help.html', context)
+    return render(request, 'help.html')
 
 #Real time view
 def dam_realtime_view(request, dam_id):
-    dams = Dam.objects.order_by('order')
     dam = get_object_or_404(Dam, pk=dam_id)
     context = {
-        'dams': dams,
         'current_dam_id': dam_id,
         'dam' : dam,
         }
@@ -52,7 +39,6 @@ def dam_realtime_view(request, dam_id):
 
 #Remote sensing view
 def dam_gis_view(request, dam_id):
-    dams = Dam.objects.order_by('order')
     dam = get_object_or_404(Dam, pk=dam_id)
 
     # Check if the dam has latitude and longitude coordinates
@@ -79,7 +65,6 @@ def dam_gis_view(request, dam_id):
             precipitation = weather_data['precipitation']['1h'] if 'precipitation' in weather_data else 0
 
             context = {
-                'dams': dams,
                 'current_dam_id': dam_id,
                 'dam': dam,
                 'temperature': temperature,
@@ -91,7 +76,6 @@ def dam_gis_view(request, dam_id):
     remote_sensing_data = RemoteSensingData.objects.filter(dam=dam).latest('timestamp')
 
     context = {
-        'dams': dams,
         'current_dam_id': dam_id,
         'dam': dam,
         'remote_sensing_data':remote_sensing_data,
@@ -104,10 +88,8 @@ def dam_gis_view(request, dam_id):
 
 #Predictions view
 def dam_pred_view(request, dam_id):
-    dams = Dam.objects.order_by('order')
     dam = get_object_or_404(Dam, pk=dam_id)
     context = {
-        'dams': dams,
         'current_dam_id': dam_id,
         'dam' : dam,
         }
@@ -116,8 +98,8 @@ def dam_pred_view(request, dam_id):
 
 
 #Trigger for notifcations
-def note_trigger(dam, sensor_value):
-    pass
+def system_alarms(request):
+    return render(request, 'notifications.html')
 
 #Function to generate and store the random data in the database
 def generate_random_sensor_data(request):
@@ -162,4 +144,34 @@ def sensor_data_display(request):
 
     return render(request, 'home2.html', context)
 
+
+#Dam selection form view
+def download_data_view(request):
+    dams = Dam.objects.order_by('order')
+    data_context = {}
+    if request.method == 'POST':
+        form = DamSelectionForm(request.POST)
+        if form.is_valid():
+            selected_dam = form.cleaned_data['dam']
+            data_type = form.cleaned_data['data_type']
+            start_date = form.cleaned_data['start_date']
+            end_date = form.cleaned_data['end_date']
+
+            # Filter the data based on the selected type and date range
+            if data_type == 'realtime':
+                data = RealTimeSensorData.objects.filter(dam=selected_dam, date__range=[start_date, end_date])
+            
+            elif data_type == 'gis':
+                data = RemoteSensingData.objects.filter(dam=selected_dam, date__range=[start_date, end_date])
+
+            data_context = {
+                'selected_data': data
+            }
+
+    else:
+        form = DamSelectionForm()
+
+
+    context = {'dams': dams, 'form': form, **data_context}
+    return render(request, 'download-data.html', context)
 

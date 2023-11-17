@@ -73,7 +73,7 @@
             </li>
 
         
-            {% for dam in dams %}
+            {% for dam in global_dams %}
             <li>
                 <!-- Sidebar content for each dam -->
                 <a href="{% url 'dam_realtime_view' dam.id %}">
@@ -114,7 +114,7 @@
 
         <!--Side bar right Alarms-->
         <div class="alarms">
-            <a href="#">Alarms (5)</a>
+            <a href="{% url 'notifications' %}">Alarms (5)</a>
         </div>
         
         <div class="side-notifications">
@@ -132,7 +132,7 @@
                     </div>
                 </li>
             </ul>
-            <a href="#">Show more...</a>
+            <a href="{% url 'notifications' %}">Show more...</a>
             
             
         </div>

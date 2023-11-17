@@ -858,6 +858,17 @@ width: 0;
     box-shadow: 1.5px 1.5px 1.5px 1.5px rgba(0.2,0.2,0.2,0.2);
 }
 
+.drop-down h3{
+    padding: 20px;
+    padding-top: 7px;
+    font-size: 22px;
+    margin-left: 5px;
+    color: var(--main-color);
+}
+.drop-down h3 span{
+    font-weight: 200;
+}
+
 .drop-down select {
     width: 100%; /* Set the width of the dropdown */
     padding: 8px; /* Add some padding */
@@ -1141,6 +1152,80 @@ margin: 10px;
 }
 .pred-sc-card2 h4{
     font-size: 20px;
+}
+
+/*Download page css*/
+.dd-card{
+    width: 40rem;
+    height: 413px;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 93px;
+    margin-left: 155px;
+    box-shadow: 1.5px 1.5px 1.5px 1.5px rgba(0.2,0.2,0.2,0.2);
+}
+.dd-card form{
+   width: 75%;
+   margin: 0 auto;
+   display: flex;
+   flex-direction: column;
+   gap: 20px;
+}
+.dd-card form p{
+    margin: 0;
+ }
+
+.dd-button{
+    background-color: var(--main-color);
+    color: var(--bg-color);
+    align-self: center;
+    padding: 10px 20px;
+    border: none;
+    cursor: pointer;
+}
+.dd-card form input,
+.dd-card form select {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+.data-category-checkbox input[type="checkbox"]:checked + label {
+    color: var(--main-color); 
+}
+/*System alarms notifications CSS*/
+.system-alerts{
+    width: 58.8rem;
+    height: 117px;
+    position: relative;
+    align-content: flex-start;
+    margin-top: 15px;
+    margin-left: 17px;
+    margin-bottom: 52px;
+    /*overflow: scroll;*/
+    box-shadow: 1.5px 1.5px 1.5px 1.5px rgba(0.2,0.2,0.2,0.2);
+}
+.alert-header{
+    width: 100%;
+    height: 42px;
+    background-color: var(--main-color);
+}
+.alert-header h4{
+    padding: 6px;
+    margin-left: 15px;
+    font-size: 20px;
+    justify-content: flex-start;
+    color: var(--bg-color);
+}
+.system-alerts p{
+    padding: 6px;
+    margin-left: 15px;
+}
+.note-time p{
+    font-size: 13px;
+    margin-top: -14px;
+    margin-left: 866px;
 }
 
 /*End of large screen CSS*/

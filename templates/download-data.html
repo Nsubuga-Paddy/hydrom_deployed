@@ -1,5 +1,16 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h1>DOWNLOAD DATA PAGE</h1>
+
+<div class="dd-card">
+    <!--download data form-->
+    <form method="post" action="#">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="dd-button">Download Data</button>
+    </form>
+</div>
+
+
+
 {% endblock %}
