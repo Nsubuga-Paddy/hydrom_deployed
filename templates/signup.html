@@ -1,0 +1,15 @@
+<div class="dd-card2">
+    <h2>Sign In</h2>
+  
+    <p>Upon siging in, you will receive HydroM email and SMS notifications about CASCADED activities</p>
+  
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Sign In</button>
+  </form>
+
+  <p>You have an account already? Login <a href="#">here</a></p>
+</div>
+  
+

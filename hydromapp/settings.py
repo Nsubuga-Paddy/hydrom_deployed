@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-cxq(p-hxioag&)7##d81(q75k&7z&&fy4g+-1rwt-u9h$lonky
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['192.168.240.76', 'localhost', '127.0.0.1', '172.168.9.74']
 
 
 # Application definition
@@ -120,11 +120,14 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Africa/Nairobi'
 
 USE_I18N = True
 
 USE_TZ = True
+
+#AUTH_USER_MODEL = 'hydromapp.UserProfile'
+
 
 
 # Static files (CSS, JavaScript, Images)
@@ -141,3 +144,12 @@ STATICFILES_DIRS = [
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+#Email configuration
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'paddynsubuga48@gmail.com'
+EMAIL_HOST_PASSWORD = 'OmaSewing4mi' #Store password safely

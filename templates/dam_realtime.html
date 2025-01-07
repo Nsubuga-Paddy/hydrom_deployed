@@ -12,6 +12,90 @@
       </select>
 </div>
 
+<!--Mobile view Dam-->
+<div class="mv-dam">
+    <h4>{{dam.name}} - Real Time Monitoring</h4>
+</div>
+
+<!--Mobile view for categories-->
+<div class="mv-categories">
+    <ul>
+        <li id="active">Real-time</li>
+        <li><a href="./isimba-dam-remote.html">GIS Monitoring</a></li>
+        <li class="centered"><a href="./isimba-dam-prediction.html">Predictions</a></li>
+    </ul>
+</div>
+
+<!--Mobile View Graphs -->
+<div class="graph-container">
+    <div class="mv-card-container">
+        <div class="mv-isimba-card">
+            <div class="isimba-card-header">
+            <h3>Water Level</h3>
+            <h4>4000mm</h4>
+            </div>
+            <div class="isimba-card-content">
+                <div id="mv_chart_div1" style="width: 100%;"></div>
+            </div>
+        </div>
+    </div>
+    <div class="mv-card-container">
+        <div class="mv-isimba-card">
+            <div class="isimba-card-header">
+            <h3>Dispatch</h3>
+            <h4>360MW</h4>
+            </div>
+            <div class="isimba-card-content">
+                <div id="mv_chart_div2" style="width: 100%;"></div>
+            </div>
+        </div>
+    </div>
+    <div class="mv-card-container">
+        <div class="mv-isimba-card">
+            <div class="isimba-card-header">
+            <h3>Temperature</h3>
+            <h4>20&deg;C</h4>
+            </div>
+            <div class="isimba-card-content">
+                <div id="mv_chart_div3" style="width: 100%;"></div>
+            </div>
+        </div>
+    </div>
+    <div class="mv-card-container">
+        <div class="mv-isimba-card">
+            <div class="isimba-card-header">
+            <h3>Precipitation</h3>
+            <h4>1000mm</h4>
+            </div>
+            <div class="isimba-card-content">
+                <div id="mv_chart_div4" style="width: 100%;"></div>
+            </div>
+        </div>
+    </div>
+    <div class="mv-card-container">
+        <div class="mv-isimba-card">
+            <div class="isimba-card-header">
+            <h3>Discharge</h3>
+            <h4>1500m <sup>3</sup>/s</h4>
+            </div>
+            <div class="isimba-card-content">
+                <div id="mv_chart_div5" style="width: 100%;"></div>
+            </div>
+        </div>
+    </div>
+    <div class="mv-card-container">
+        <div class="mv-isimba-card">
+            <div class="isimba-card-header">
+            <h3>Humidity</h3>
+            <h4>20%</h4>
+            </div>
+            <div class="isimba-card-content">
+                <div id="mv_chart_div6" style="width: 100%;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!--Real time monitoring slider-->
 <div class="isimba-slider">
     <div class="column-wrapper">
@@ -44,40 +128,78 @@
         <div class="column dam-column">
             <div class="dam-carousel">
                 <div class="dam-slider">
-                    <section id="isimba-sec1">
-                        <div class="slider-column">
-                            <div class="isimba-column">
-                                <div class="isimba-sc-card">
-                                    <h3>{{dam.RealTimeSensorData.waterlevel}}mm</h3>
-                                    <p>Water Level</p>
+                    <section id="isimba-sec1 ">
+                        {% if dam.latest_realtime_data %}
+                            <div class="slider-column">
+                                <div class="isimba-column">
+                                    <div class="isimba-sc-card">
+                                        <h3 id="waterlevel-{{ dam.id }}">{{ dam.latest_realtime_data.waterlevel }}mm</h3>
+                                        <p>Water Level</p>
+                                    </div>
+                                    <div class="isimba-sc-card">
+                                        <h3 id="dispatch-{{ dam.id }}">{{dam.latest_realtime_data.dispatch}}MW</h3>
+                                        <p>Dispatch</p>
+                                    </div>
                                 </div>
-                                <div class="isimba-sc-card">
-                                    <h3>{{dam.RealTimeSensorData.dispatch}}MW</h3>
-                                    <p>Dispatch</p>
+                                <div class="isimba-column">
+                                    <div class="isimba-sc-card">
+                                        <h3 id="discharge-{{ dam.id }}">{{dam.latest_realtime_data.discharge}}m <sup>3</sup>/s</h3>
+                                        <p>Discharge</p>
+                                    </div>
+                                    <div class="isimba-sc-card">
+                                        <h3 id="temperature-{{ dam.id }}">{{dam.latest_realtime_data.temperature}}&deg;C</h3>
+                                        <p>Temperature</p>
+                                    </div>
+                                </div>
+                                <div class="isimba-column">
+                                    <div class="sc-card">
+                                        <h3 id="humidity-{{ dam.id }}">{{dam.latest_realtime_data.humidity}}%</h3>
+                                        <p>Humidity</p>
+                                    </div>
+                                    <div class="sc-card">
+                                        <h3 id="precipitation-{{ dam.id }}">{{dam.latest_realtime_data.precipitation}}mm</h3>
+                                        <p>Precipitation</p>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="isimba-column">
-                                <div class="isimba-sc-card">
-                                    <h3>{{dam.RealTimeSensorData.discharge}}m <sup>3</sup>/s</h3>
-                                    <p>Discharge</p>
+                        {% else %}
+                            <div class="slider-column">
+                                <div class="isimba-column">
+                                    <div class="isimba-sc-card">
+                                        <h3 style="font-size: 12px;">No data available</h3>
+                                        <p>Water Level</p>
+                                    </div>
+                                    <div class="isimba-sc-card">
+                                        <h3 style="font-size: 12px;">No data available</h3>
+                                        <p>Dispatch</p>
+                                    </div>
                                 </div>
-                                <div class="isimba-sc-card">
-                                    <h3>{{dam.RealTimeSensorData.temperature}}&deg;C</h3>
-                                    <p>Temperature</p>
+                                <div class="isimba-column">
+                                    <div class="isimba-sc-card">
+                                        <h3 style="font-size: 12px;">No data available<sup>3</sup>/s</h3>
+                                        <p>Discharge</p>
+                                    </div>
+                                    <div class="isimba-sc-card">
+                                        <h3 style="font-size: 12px;">No data available</h3>
+                                        <p>Temperature</p>
+                                    </div>
+                                </div>
+                                <div class="isimba-column">
+                                    <div class="sc-card">
+                                        <h3 style="font-size: 12px;">No data available</h3>
+                                        <p>Humidity</p>
+                                    </div>
+                                    <div class="sc-card">
+                                        <h3 style="font-size: 12px;">No data available</h3>
+                                        <p>Precipitation</p>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="isimba-column">
-                                <div class="sc-card">
-                                    <h3>{{dam.RealTimeSensorData.humidity}}%</h3>
-                                    <p>Humidity</p>
-                                </div>
-                                <div class="sc-card">
-                                    <h3>{{dam.RealTimeSensorData.precipitation}}mm</h3>
-                                    <p>Precipitation</p>
-                                </div>
-                            </div>
-                        </div>
+                        {% endif %}
                     </section>
+                    <script>
+                        setInterval(() => updateDamData2('{{ dam.id }}'), 10000);
+                    </script>
                 </div>
             </div>
         </div>
@@ -85,59 +207,248 @@
 </div>
 
 <!--Graphs-->
-<div class="card-container">
-    <div class="isimba-card">
-        <div class="isimba-card-header">
-        <h3>Water Level</h3>
+<div class="pocket" style="height: 760px; margin-bottom: 40px;">
+    <div class="card-container">
+        <div class="isimba-card" >
+            <div class="isimba-card-header">
+            <h3>Water Level</h3>
+            </div>
+            <div class="isimba-card-content">
+                <div id="waterLevelChart" style="width: 100%; margin-left: 5px;"> </div>
+            </div>
         </div>
-        <div class="isimba-card-content">
-            <div id="chart_div1" style="width: 100%;"></div>
-        </div>
-    </div>
-    <div class="isimba-card">
-        <div class="isimba-card-header">
-        <h3>Dispatch</h3>
-        </div>
-        <div class="isimba-card-content">
-            <div id="chart_div2" style="width: 100%;"></div>
-        </div>
-    </div>
-</div>
-<div class="card-container cc2">
-    <div class="isimba-card">
-        <div class="isimba-card-header">
-        <h3>Temperature</h3>
-        </div>
-        <div class="isimba-card-content">
-            <div id="chart_div3" style="width: 100%;"></div>
+
+        <div class="isimba-card">
+            <div class="isimba-card-header">
+            <h3>Dispatch</h3>
+            </div>
+            <div class="isimba-card-content">
+                <div id="dispatchChart" style="width: 100%;"> </div>
+            </div>
         </div>
     </div>
-    <div class="isimba-card">
-        <div class="isimba-card-header">
-        <h3>Precipitation</h3>
+
+    <div class="card-container cc2">
+        <div class="isimba-card">
+            <div class="isimba-card-header">
+            <h3>Temperature</h3>
+            </div>
+            <div class="isimba-card-content">
+                <div id="temperatureChart" style="width: 100%;"></div>
+            </div>
         </div>
-        <div class="isimba-card-content">
-            <div id="chart_div4" style="width: 100%;"></div>
-        </div>
-    </div>
-</div>
-<div class="card-container cc3">
-    <div class="isimba-card">
-        <div class="isimba-card-header">
-        <h3>Discharge</h3>
-        </div>
-        <div class="isimba-card-content">
-            <div id="chart_div5" style="width: 100%;"></div>
-        </div>
-    </div>
-    <div class="isimba-card">
-        <div class="isimba-card-header">
-        <h3>Humidity</h3>
-        </div>
-        <div class="isimba-card-content">
-            <div id="chart_div6" style="width: 100%;"></div>
+        <div class="isimba-card">
+            <div class="isimba-card-header">
+            <h3>Precipitation</h3>
+            </div>
+            <div class="isimba-card-content">
+                <div id="precipitationChart" style="width: 100%;"></div>
+            </div>
         </div>
     </div>
-</div>
+
+    <div class="card-container cc3" style="margin-bottom: 30px;">
+        <div class="isimba-card">
+            <div class="isimba-card-header">
+            <h3>Discharge</h3>
+            </div>
+            <div class="isimba-card-content">
+                <div id="dischargeChart" style="width: 100%;"></div>
+            </div>
+        </div>
+        <div class="isimba-card">
+            <div class="isimba-card-header">
+            <h3>Humidity</h3>
+            </div>
+            <div class="isimba-card-content">
+                <div id="humidityChart" style="width: 100%;"></div>
+            </div>
+        </div>
+    </div>
+</div> 
+
+<script type="text/javascript">
+    google.charts.load('current', {'packages':['corechart', 'line']});
+
+    var currentDamId = "{{ current_dam_id }}"; // Get the current dam ID from Django template
+
+    google.charts.setOnLoadCallback(drawCharts);
+
+    function drawCharts() {
+        fetchAndUpdateData(); // Initial fetch and draw
+        setInterval(fetchAndUpdateData, 10000); // Update every 10 seconds
+    }
+
+    // ... (drawWaterLevelChart and drawDispatchChart functions)
+    function drawWaterLevelChart(dataArray = [['Time', 'Water Level']]) {
+    var data = google.visualization.arrayToDataTable(dataArray);
+
+    var options = {
+        title: '',
+        hAxis: {title: 'Time', format: 'HH:mm:ss', gridlines: { count: 5 }},
+        vAxis: {minValue: 0, title: ''},
+        legend: 'none',
+        chartArea: { 
+            left: 30, 
+            top: 20, 
+            right: 0, 
+            bottom: 50 
+        },
+        colors: ['#0896FC'],
+        areaOpacity: 0.3,
+        tooltip: { 
+            isHtml: true, 
+            trigger: 'focus' 
+         },
+    };
+
+    var chart = new google.visualization.AreaChart(document.getElementById('waterLevelChart'));
+    chart.draw(data, options);
+}
+
+    function drawDispatchChart(dataArray = [['Time', 'Dispatch']]) {
+        var data = google.visualization.arrayToDataTable(dataArray);
+        var options = { 
+            title: '', 
+            legend: 'none',
+            hAxis:{title: 'Time'},
+            vAxis:{title: 'MW'},
+            chartArea:{
+                left: 30, 
+                top: 20, 
+                right: 0, 
+                bottom: 50 
+            },
+            colors: ['#0896FC'],
+            tooltip: { 
+                isHtml: true, 
+                trigger: 'focus' 
+         },
+        };
+        var chart = new google.visualization.LineChart(document.getElementById('dispatchChart'));
+        chart.draw(data, options);
+    }
+
+    function drawTemperatureChart(dataArray = [['Time', 'Temperature']]) {
+        var data = google.visualization.arrayToDataTable(dataArray);
+        var options = { 
+            title: '', 
+            curveType: 'function',
+            legend: 'none',
+            chartArea:{
+                left: 30, 
+                top: 20, 
+                right: 0, 
+                bottom: 50 
+            },
+            colors: ['#0896FC'],
+            tooltip: { 
+                isHtml: true, 
+                trigger: 'focus' 
+            },
+            vAxis: {
+            title: '',
+            viewWindow: {
+                min: -20, 
+                max: 95 
+            },
+            minValue: -20,  
+            maxValue: 95   
+        }
+        };
+        var chart = new google.visualization.LineChart(document.getElementById('temperatureChart'));
+        chart.draw(data, options);
+    }
+
+    function drawPrecipitationChart(dataArray = [['Time', 'Precipitation']]) {
+        var data = google.visualization.arrayToDataTable(dataArray);
+
+        var options = {
+            title: '',
+            hAxis: {title: 'Date'},
+            vAxis: {title: 'mm'},
+            legend: 'none',
+            chartArea: { 
+                left: 30, 
+                top: 20, 
+                right: 0, 
+                bottom: 50 
+            },
+            colors: ['#0896FC'],
+            tooltip: { 
+                isHtml: true, 
+                trigger: 'focus' 
+            },
+        };
+
+        var chart = new google.visualization.ColumnChart(document.getElementById('precipitationChart'));
+        chart.draw(data, options);
+    }
+
+    function drawDischargeChart(dataArray = [['Time', 'Discharge']]) {
+        var data = google.visualization.arrayToDataTable(dataArray);
+
+        var options = {
+            title: '',
+            hAxis: {title: 'Time'},
+            legend: 'none',
+            chartArea: { 
+                left: 30, 
+                top: 20, 
+                right: 0, 
+                bottom: 50 
+            },
+            colors: ['#0896FC'],
+        };
+
+        var chart = new google.visualization.ColumnChart(document.getElementById('dischargeChart'));
+        chart.draw(data, options);
+    }
+
+    function drawHumidityChart(dataArray = [['Time', 'Humidity']]) {
+        var data = google.visualization.arrayToDataTable(dataArray);
+
+        var options = {
+            title: '',
+            hAxis: {title: 'Time'},
+            vAxis: {title: '%'},
+            legend: 'none',
+            curveType: 'function', // Smooth line curve
+            colors: ['#0896FC'],
+        };
+
+        var chart = new google.visualization.LineChart(document.getElementById('humidityChart'));
+        chart.draw(data, options);
+    }
+
+    async function fetchAndUpdateData() {
+        try {
+            const response = await fetch(`/api/sensor_data/${currentDamId}`); // Use the current dam ID
+            const rtData = await response.json();
+
+            // Prepare data for charts
+            const waterLevelData = [['Time', 'Water Level']].concat(rtData.timestamps.map((t, i) => [t, rtData.waterlevels[i]]));
+            const dispatchData = [['Time', 'Dispatch']].concat(rtData.timestamps.map((t, i) => [t, rtData.dispatchs[i]]));
+            const temperatureData = [['Time', 'Temperature']].concat(rtData.timestamps.map((t, i) => [t, parseFloat(rtData.temperatures[i])]));
+            const precipitationData = [['Time', 'Precipitation']].concat(rtData.timestamps.map((t, i) => [t, parseFloat(rtData.precipitations[i])]));
+            const dischargeData = [['Time', 'Discharge']].concat(rtData.timestamps.map((t, i) => [t, rtData.discharges[i]]));
+            const humidityData = [['Time', 'Humidyt']].concat(rtData.timestamps.map((t, i) => [t, rtData.humiditys[i]]));
+
+
+            // Redraw charts with new data
+            drawWaterLevelChart(waterLevelData);
+            drawDispatchChart(dispatchData);
+            drawTemperatureChart(temperatureData);
+            drawPrecipitationChart(precipitationData);
+            drawDischargeChart(dischargeData);
+            drawHumidityChart(humidityData);
+
+        } catch (error) {
+            console.error('Error fetching data:', error);
+        }
+    }
+</script>
+
+
 {% endblock %}
 

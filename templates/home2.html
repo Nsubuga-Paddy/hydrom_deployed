@@ -1,6 +1,24 @@
 {% extends "base.html" %}
-
+{% load static %}
 {% block content %}
+<!--Mobile view select Dam-->
+<div class="select-dam">
+    <img src="{% static 'hydromapp/images/dam.png' %}" style="width: 60px;">
+    <h3>Select a Dam Below</h3>
+    <ul class="dam-list">
+        <li><a href="#">Lake Nalubaale (Jinja Pier)</a></li>
+
+        {% for dam in global_dams %}
+        <li>
+            <!-- Sidebar content for each dam -->
+            <a href="{% url 'dam_realtime_view' dam.id %}">
+                <p>{{ dam.name }}</p>
+            </a>
+        </li>
+        {% endfor %}
+    </ul>
+</div>
+
 <div class="side-bar2">
     <!--Real time monitoring card-->
     <div class="rt-monitoring">
@@ -31,43 +49,82 @@
                 <div class="carousel4">
                     <div class="slider4">
                         {% for dam in global_dams %}
+                            <script>
+                                setInterval(() => updateDamData2('{{ dam.id }}'), 10000);
+                            </script>
                             <section id="sec16">
                                 <div class="item">
                                     <h4 class="hpp">{{ dam.name}} - Status</h4>
-                                    <div class="slider-column1">
-                                        <div class="column">
-                                        <div class="sc-card">
-                                            <h3>{{ dam.RealTimeSensorData.waterlevel }}mm</h3>
-                                            <p>Current Water Level</p>
+                                    {% if dam.latest_realtime_data %}
+                                        <div class="slider-column1">
+                                            <div class="column">
+                                            <div class="sc-card">
+                                                <h3 id="waterlevel-{{ dam.id }}">{{dam.latest_realtime_data.waterlevel}}mm</h3>
+                                                <p>Current Water Level</p>
+                                            </div>
+                                            <div class="sc-card">
+                                                <h3 id="humidity-{{ dam.id }}">{{ dam.latest_realtime_data.humidity }}%</h3>
+                                                <p>Humidity</p>
+                                            </div>
+                                            </div>
+                                            <div class="column">
+                                            <div class="sc-card">
+                                                <h3 id="dispatch-{{ dam.id }}">{{ dam.latest_realtime_data.dispatch }}MW</h3>
+                                                <p>Dispatch</p>
+                                            </div>
+                                            <div class="sc-card">
+                                                <h3 id="temperature-{{ dam.id }}">{{ dam.latest_realtime_data.temperature }}&deg;C</h3>
+                                                <p>Temperature</p>
+                                            </div>
+                                            </div>
+                                            <div class="column">
+                                            <div class="sc-card">
+                                                <h3 id="discharge-{{ dam.id }}">{{ dam.latest_realtime_data.discharge }}m <sup>3</sup>/s</h3>
+                                                <p>Discharge</p>
+                                            </div>
+                                            <div class="sc-card">
+                                                <h3 id="precipitation-{{ dam.id }}">{{ dam.latest_realtime_data.precipitation }}mm</h3>
+                                                <p>Precipitation</p>
+                                            </div>
+                                            </div>
                                         </div>
-                                        <div class="sc-card">
-                                            <h3>{{ dam.RealTimeSensorData.humidity }}%</h3>
-                                            <p>Humidity</p>
+                                    {% else %}
+                                        <div class="slider-column1">
+                                            <div class="column">
+                                            <div class="sc-card">
+                                                <h3 style="font-size: 12px;">No data available</h3>
+                                                <p>Current Water Level</p>
+                                            </div>
+                                            <div class="sc-card">
+                                                <h3 style="font-size: 12px;">No data available</h3>
+                                                <p>Humidity</p>
+                                            </div>
+                                            </div>
+                                            <div class="column">
+                                            <div class="sc-card">
+                                                <h3 style="font-size: 12px;">No data available</h3>
+                                                <p>Dispatch</p>
+                                            </div>
+                                            <div class="sc-card">
+                                                <h3 style="font-size: 12px;">No data available</h3>
+                                                <p>Temperature</p>
+                                            </div>
+                                            </div>
+                                            <div class="column">
+                                            <div class="sc-card">
+                                                <h3 style="font-size: 12px;">No data available</h3>
+                                                <p>Discharge</p>
+                                            </div>
+                                            <div class="sc-card">
+                                                <h3 style="font-size: 12px;">No data available</h3>
+                                                <p>Precipitation</p>
+                                            </div>
+                                            </div>
                                         </div>
-                                        </div>
-                                        <div class="column">
-                                        <div class="sc-card">
-                                            <h3>{{ dam.RealTimeSensorData.dispatch }}MW</h3>
-                                            <p>Dispatch</p>
-                                        </div>
-                                        <div class="sc-card">
-                                            <h3>{{ dam.RealTimeSensorData.temperature }}&deg;C</h3>
-                                            <p>Temperature</p>
-                                        </div>
-                                        </div>
-                                        <div class="column">
-                                        <div class="sc-card">
-                                            <h3>{{ dam.RealTimeSensorData.discharge }}m <sup>3</sup>/s</h3>
-                                            <p>Discharge</p>
-                                        </div>
-                                        <div class="sc-card">
-                                            <h3>{{ dam.RealTimeSensorData.precipitation }}mm</h3>
-                                            <p>Precipitation</p>
-                                        </div>
-                                        </div>
-                                    </div>
+                                    {% endif %}
                                 </div>
                             </section>
+                            
                         {% endfor %}
                     </div>
                     <div class="controls4">
@@ -149,28 +206,53 @@
                         <section id="sec11">
                             <div class="item">
                                 <h4 class="hpp">{{ dam.name }} - Status</h4>
-                                <div class="slider-column1">
-                                    <div class="column">
-                                    <div class="sc-card">
-                                        <h3>{{ dam.RemoteSensingData.waterlevel }}mm</h3>
-                                        <p>Current Water Level</p>
+                                {% if dam.latest_remote_data %}
+                                    <div class="slider-column1">
+                                        <div class="column">
+                                        <div class="sc-card">
+                                            <h3>{{ dam.latest_remote_data.waterlevel }}mm</h3>
+                                            <p>Current Water Level</p>
+                                        </div>
+                                        <div class="sc-card">
+                                            <h3>{{ dam.latest_remote_data.humidity }}%</h3>
+                                            <p>Humidity</p>
+                                        </div>
+                                        </div>
+                                        <div class="column">
+                                        <div class="sc-card">
+                                            <h3>{{ dam.latest_remote_data.precipitation }}mm</h3>
+                                            <p>Precipitation</p>
+                                        </div>
+                                        <div class="sc-card">
+                                            <h3>{{ dam.latest_remote_data.temperature }}&deg;C</h3>
+                                            <p>Temperature</p>
+                                        </div>
+                                        </div>
                                     </div>
-                                    <div class="sc-card">
-                                        <h3>{{ dam.RemoteSensingData.humidity }}%</h3>
-                                        <p>Humidity</p>
+                                {% else %}
+                                    <div class="slider-column1">
+                                        <div class="column">
+                                        <div class="sc-card">
+                                            <h3 style="font-size: 12px;">No data available</h3>
+                                            <p>Current Water Level</p>
+                                        </div>
+                                        <div class="sc-card">
+                                            <h3 style="font-size: 12px;">No data available</h3>
+                                            <p>Humidity</p>
+                                        </div>
+                                        </div>
+                                        <div class="column">
+                                        <div class="sc-card">
+                                            <h3 style="font-size: 12px;">No data available</h3>
+                                            <p>Precipitation</p>
+                                        </div>
+                                        <div class="sc-card">
+                                            <h3 style="font-size: 12px;">No data available</h3>
+                                            <p>Temperature</p>
+                                        </div>
+                                        </div>
                                     </div>
-                                    </div>
-                                    <div class="column">
-                                    <div class="sc-card">
-                                        <h3>{{ dam.RemoteSensingData.precipitation }}mm</h3>
-                                        <p>Precipitation</p>
-                                    </div>
-                                    <div class="sc-card">
-                                        <h3>{{ dam.RemoteSensingData.temperature }}&deg;C</h3>
-                                        <p>Temperature</p>
-                                    </div>
-                                    </div>
-                                </div>
+                                {% endif %}
                             </div>
                         </section>
                         {% endfor %}

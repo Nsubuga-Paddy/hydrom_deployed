@@ -15,7 +15,7 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from . import views
@@ -31,7 +31,11 @@ urlpatterns = [
     path('hydrom/<int:dam_id>/realtime/', views.dam_realtime_view, name='dam_realtime_view'),
     path('hydrom/<int:dam_id>/gis/', views.dam_gis_view, name='dam_gis_view'),
     path('hydrom/<int:dam_id>/prediction/', views.dam_pred_view, name='dam_pred_view'),
+    path('register.html/', views.registerPage, name='register'),
+    path('login.html/', views.loginPage, name='login'),
+    path('logout.html/', views.logoutUser, name='logout'),
 
-    path('', views.sensor_data_display, name='sensor_data_display'),
-    path('generate-random-sensor-data/', views.generate_random_sensor_data, name='generate_random_sensor_data'),
+    path('api/sensor_data/<int:dam_id>/', views.get_rt_sensor_data, name='get_rt_sensor_data'),
+
+    path('store-data/', views.store_data, name='store_data'),
 ]

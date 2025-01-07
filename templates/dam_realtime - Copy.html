@@ -1,0 +1,262 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block content %}
+<!--dam real time data Content-->
+
+<!--Drop-down for dams-->
+<div class="drop-down">
+    <select id="dam-select">
+        <option value="#" disabled selected>{{dam.name }}- Status</option>
+      </select>
+</div>
+
+<!--Mobile view Dam-->
+<div class="mv-dam">
+    <h4>{{dam.name}} - Real Time Monitoring</h4>
+</div>
+
+<!--Mobile view for categories-->
+<div class="mv-categories">
+    <ul>
+        <li id="active">Real-time</li>
+        <li><a href="./isimba-dam-remote.html">GIS Monitoring</a></li>
+        <li class="centered"><a href="./isimba-dam-prediction.html">Predictions</a></li>
+    </ul>
+</div>
+
+<!--Mobile View Graphs -->
+<div class="graph-container">
+    <div class="mv-card-container">
+        <div class="mv-isimba-card">
+            <div class="isimba-card-header">
+            <h3>Water Level</h3>
+            <h4>4000mm</h4>
+            </div>
+            <div class="isimba-card-content">
+                <div id="mv_chart_div1" style="width: 100%;"></div>
+            </div>
+        </div>
+    </div>
+    <div class="mv-card-container">
+        <div class="mv-isimba-card">
+            <div class="isimba-card-header">
+            <h3>Dispatch</h3>
+            <h4>360MW</h4>
+            </div>
+            <div class="isimba-card-content">
+                <div id="mv_chart_div2" style="width: 100%;"></div>
+            </div>
+        </div>
+    </div>
+    <div class="mv-card-container">
+        <div class="mv-isimba-card">
+            <div class="isimba-card-header">
+            <h3>Temperature</h3>
+            <h4>20&deg;C</h4>
+            </div>
+            <div class="isimba-card-content">
+                <div id="mv_chart_div3" style="width: 100%;"></div>
+            </div>
+        </div>
+    </div>
+    <div class="mv-card-container">
+        <div class="mv-isimba-card">
+            <div class="isimba-card-header">
+            <h3>Precipitation</h3>
+            <h4>1000mm</h4>
+            </div>
+            <div class="isimba-card-content">
+                <div id="mv_chart_div4" style="width: 100%;"></div>
+            </div>
+        </div>
+    </div>
+    <div class="mv-card-container">
+        <div class="mv-isimba-card">
+            <div class="isimba-card-header">
+            <h3>Discharge</h3>
+            <h4>1500m <sup>3</sup>/s</h4>
+            </div>
+            <div class="isimba-card-content">
+                <div id="mv_chart_div5" style="width: 100%;"></div>
+            </div>
+        </div>
+    </div>
+    <div class="mv-card-container">
+        <div class="mv-isimba-card">
+            <div class="isimba-card-header">
+            <h3>Humidity</h3>
+            <h4>20%</h4>
+            </div>
+            <div class="isimba-card-content">
+                <div id="mv_chart_div6" style="width: 100%;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--Real time monitoring slider-->
+<div class="isimba-slider">
+    <div class="column-wrapper">
+
+        <div class="column column-1">
+            <div class="isimba-rtm-card">
+                <div class="isimba-rtm-card">
+                    <h4>
+                        Real-time <br> monitoring
+                    </h4>
+                    <div class="date-time">
+                        <div class="date">
+                            <span id="dayname">Day</span>,
+                            <span id="month">Month</span>
+                            <span id="daynum">00</span>,
+                            <span id="year">Year</span>
+                        </div>
+                        <div class="time">
+                            <span id="hour">00</span>:
+                            <span id="minutes">00</span>:
+                            <span id="seconds">00</span>
+                            <span id="period">AM</span>
+                        </div>
+                    </div>
+                    
+                </div>
+            </div>
+        </div>
+
+        <div class="column dam-column">
+            <div class="dam-carousel">
+                <div class="dam-slider">
+                    <section id="isimba-sec1">
+                        {% if dam.latest_realtime_data %}
+                            <div class="slider-column">
+                                <div class="isimba-column">
+                                    <div class="isimba-sc-card">
+                                        <h3>{{dam.latest_realtime_data.waterlevel}}mm</h3>
+                                        <p>Water Level</p>
+                                    </div>
+                                    <div class="isimba-sc-card">
+                                        <h3>{{dam.latest_realtime_data.dispatch}}MW</h3>
+                                        <p>Dispatch</p>
+                                    </div>
+                                </div>
+                                <div class="isimba-column">
+                                    <div class="isimba-sc-card">
+                                        <h3>{{dam.latest_realtime_data.discharge}}m <sup>3</sup>/s</h3>
+                                        <p>Discharge</p>
+                                    </div>
+                                    <div class="isimba-sc-card">
+                                        <h3>{{dam.latest_realtime_data.temperature}}&deg;C</h3>
+                                        <p>Temperature</p>
+                                    </div>
+                                </div>
+                                <div class="isimba-column">
+                                    <div class="sc-card">
+                                        <h3>{{dam.latest_realtime_data.humidity}}%</h3>
+                                        <p>Humidity</p>
+                                    </div>
+                                    <div class="sc-card">
+                                        <h3>{{dam.latest_realtime_data.precipitation}}mm</h3>
+                                        <p>Precipitation</p>
+                                    </div>
+                                </div>
+                            </div>
+                        {% else %}
+                            <div class="slider-column">
+                                <div class="isimba-column">
+                                    <div class="isimba-sc-card">
+                                        <h3 style="font-size: 12px;">No data available</h3>
+                                        <p>Water Level</p>
+                                    </div>
+                                    <div class="isimba-sc-card">
+                                        <h3 style="font-size: 12px;">No data available</h3>
+                                        <p>Dispatch</p>
+                                    </div>
+                                </div>
+                                <div class="isimba-column">
+                                    <div class="isimba-sc-card">
+                                        <h3 style="font-size: 12px;">No data available<sup>3</sup>/s</h3>
+                                        <p>Discharge</p>
+                                    </div>
+                                    <div class="isimba-sc-card">
+                                        <h3 style="font-size: 12px;">No data available</h3>
+                                        <p>Temperature</p>
+                                    </div>
+                                </div>
+                                <div class="isimba-column">
+                                    <div class="sc-card">
+                                        <h3 style="font-size: 12px;">No data available</h3>
+                                        <p>Humidity</p>
+                                    </div>
+                                    <div class="sc-card">
+                                        <h3 style="font-size: 12px;">No data available</h3>
+                                        <p>Precipitation</p>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </section>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--Graphs-->
+<div class="card-container">
+    <div class="isimba-card">
+        <div class="isimba-card-header">
+        <h3>Water Level</h3>
+        </div>
+        <div class="isimba-card-content">
+            <div id="chart_div1" style="width: 100%;"></div>
+        </div>
+    </div>
+    <div class="isimba-card">
+        <div class="isimba-card-header">
+        <h3>Dispatch</h3>
+        </div>
+        <div class="isimba-card-content">
+            <div id="chart_div2" style="width: 100%;"></div>
+        </div>
+    </div>
+</div>
+<div class="card-container cc2">
+    <div class="isimba-card">
+        <div class="isimba-card-header">
+        <h3>Temperature</h3>
+        </div>
+        <div class="isimba-card-content">
+            <div id="chart_div3" style="width: 100%;"></div>
+        </div>
+    </div>
+    <div class="isimba-card">
+        <div class="isimba-card-header">
+        <h3>Precipitation</h3>
+        </div>
+        <div class="isimba-card-content">
+            <div id="chart_div4" style="width: 100%;"></div>
+        </div>
+    </div>
+</div>
+<div class="card-container cc3">
+    <div class="isimba-card">
+        <div class="isimba-card-header">
+        <h3>Discharge</h3>
+        </div>
+        <div class="isimba-card-content">
+            <div id="chart_div5" style="width: 100%;"></div>
+        </div>
+    </div>
+    <div class="isimba-card">
+        <div class="isimba-card-header">
+        <h3>Humidity</h3>
+        </div>
+        <div class="isimba-card-content">
+            <div id="chart_div6" style="width: 100%;"></div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

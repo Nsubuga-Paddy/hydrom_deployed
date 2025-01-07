@@ -20,6 +20,8 @@
 
     <link rel="stylesheet" href="{% static 'hydromapp/css/style.css' %}">
 
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
     <script src="{% static 'hydromapp/js/chart.js' %}"></script>
     <script src="{% static 'hydromapp/js/mv-chart.js' %}"></script>
@@ -39,7 +41,7 @@
 
         <ul class="navbar">
             <li><a href="{% url 'home' %}" {% if request.resolver_match.url_name == 'home' %}class="active"{% endif %}>Dash Board</a></li>
-            <li><a href="./isimba-dam-system-alarms.html" class="cascade">System Alarms</a></li>
+            <li><a href="{% url 'notifications' %}" {% if request.resolver_match.url_name == 'notifications' %}class="active cascade"{% endif %}>System Alarms</a></li>
             <li><a href="{% url 'about' %}" {% if request.resolver_match.url_name == 'about' %}class="active"{% endif %}>About Us</a></li>
             <li><a href="{% url 'contact' %}" {% if request.resolver_match.url_name == 'contact' %}class="active"{% endif %}>Contact Us</a></li>
             <li><a href="{% url 'download' %}" {% if request.resolver_match.url_name == 'download=""' %}class="active"{% endif %}>Download Data</a></li>
@@ -47,20 +49,29 @@
         </ul>
 
         <div class="main">
-            <a href="#" class="user"><i class="ri-user-fill"></i>Sign In</a>
+            {% if request.user.is_authenticated %}
+                <div class="dropdown">
+                    <button class="user-dropdown-btn">
+                        <i class="ri-user-fill"></i>{{ request.user.username }} <i class="ri-arrow-down-s-fill"></i>
+                    </button>
+                    <div class="dropdown-content">
+                        <a href="{% url 'logout' %}">Logout</a>
+                    </div>
+                </div>
+            {% else %}
+                <a href="{% url 'login' %}" class="user"><i class="ri-user-fill"></i>Sign In</a>
+            {% endif %}
         </div>
+        
+<!--
+        <div class="main">
+             <a href="{% url 'register' %}" class="user"><i class="ri-user-fill"></i>Sign In</a>
+             <span>Hello, {{request.user}}</span>
+             <span>Login</span>
+        </div>
+-->
    
-    </header>
-
-    <!--Mobile view select Dam
-        <div class="select-dam">
-            <img src="{% static 'hydromapp/images/dam.png' %}" style="width: 60px;">
-            <h3>Select a Dam Below</h3>
-            <ul class="dam-list">
-                <li><a href="#">Lake Nalubaale (Jinja Pier)</a></li>
-            </ul>
-        </div>
-        -->
+    </header>  
 
     <!--Dams on the CASCADE-->
     <div class="side-bar" id="side-bar">
@@ -72,23 +83,38 @@
                 <p id="dam-paragraph">Water level: 1500mm</p>
             </li>
 
-        
             {% for dam in global_dams %}
             <li>
                 <!-- Sidebar content for each dam -->
                 <a href="{% url 'dam_realtime_view' dam.id %}">
                     <img src="{% static 'hydromapp/images/dam.png' %}" alt="">
                     <p>{{ dam.name }}</p>
-                    <p id="dam-paragraph">Water level: {{ dam.waterlevel }}mm <br> Dispatch: {{ dam.dispatch }}MW <br> Discharge: {{ dam.discharge }} m<sup>3</sup>/s</p>
+                    {% if dam.latest_realtime_data %}
+                        <p id="dam-paragraph  dam-paragraph-{{ dam.id }}" style="font-size: 12px; font-weight: 600;">
+                            Water level: <span id="waterlevel-{{ dam.id }}">{{ dam.latest_realtime_data.waterlevel }}mm</span> <br> 
+                            Dispatch: <span id="dispatch-{{ dam.id }}">{{ dam.latest_realtime_data.dispatch }}MW</span> <br> 
+                            Discharge: <span id="discharge-{{ dam.id }}">{{ dam.latest_realtime_data.discharge }} m<sup>3</sup>/s</span>
+                        </p>
+                    {% else %}
+                    <p id="dam-paragraph">
+                        Water level: No data available <br> 
+                        Dispatch: No data available <br> 
+                        Discharge: No data available
+                    </p>
+                    {% endif %}
                 </a>
             </li>
+            <script>
+                setInterval(() => updateDamData2('{{ dam.id }}'), 10000);
+            </script>
             {% endfor %}
-            
-            </ul>
+                        
+        </ul>
 
     </div>
 
     <!--Side bar right-->
+    {% block sidebar %}
     <div class="card">
         <!--Side bar right search bar-->
         <form>
@@ -101,13 +127,13 @@
             <h4>Monitoring Category</h4>
             <ul>
                 {% if current_dam_id %}
-                <li class="active-cat"><a href="{% url 'dam_realtime_view' current_dam_id %}">Real-time</a></li>
-                <li> <a href="{% url 'dam_gis_view' current_dam_id %}">GIS Monitoring</a></li>
-                <li><a href="#"></a>Predictions</a></li>
+                    <li class="active-cat"><a href="{% url 'dam_realtime_view' current_dam_id %}">Real-time</a></li>
+                    <li> <a href="{% url 'dam_gis_view' current_dam_id %}">GIS Monitoring</a></li>
+                    <li><a href="#"></a>Predictions</a></li>
                 {% else %}
-                <li class="active-cat"><a href="#">Real-time</a></li>
-                <li> <a href="#">GIS Monitoring</a></li>
-                <li><a href="#"></a>Predictions</a></li>
+                    <li class="active-cat"><a href="#">Real-time</a></li>
+                    <li> <a href="#">GIS Monitoring</a></li>
+                    <li><a href="#"></a>Predictions</a></li>
                 {% endif %}
             </ul>
         </div>
@@ -138,10 +164,21 @@
         </div>
            
     </div>
-    
+    {% endblock %}
+
     {% block content %}
 
     {% endblock %}
+
+    <!-- The signup Modal -->
+    <div id="signupModal" class="modal">
+        <!-- Modal content -->
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <!-- Placeholder for dynamic content -->
+            <div id="modalContent"></div>
+        </div>
+    </div>
       
     <!--Footer-->
     <footer>
@@ -152,7 +189,52 @@
     </footer>
 
     <!--js link-->
-   
+    <script>
+
+        function updateDamData2(damId) {
+            $.ajax({
+                url: '/api/sensor_data/' + damId + '/',
+                type: 'GET',
+                dataType: 'json',
+                success: function(response) {
+                    // Example: Update the water level for a specific dam
+                    // Ensure your HTML elements have IDs or classes that can be targeted
+                    $('#waterlevel-' + damId).text(response.waterlevels[0] + 'mm');
+                    $('#humidity-' + damId).text(response.humiditys[0] + '%');
+                    $('#dispatch-' + damId).text(response.dispatchs[0] + 'MW');
+                    $('#temperature-' + damId).text(response.temperatures[0] + '°C');
+                    $('#discharge-' + damId).text(response.discharges[0] + ' m³/s');
+                    $('#precipitation-' + damId).text(response.precipitations[0] + 'mm');
+                    
+                },
+                error: function(error) {
+                    console.log('Error:', error);
+                }
+            });
+        }
+
+
+    </script> 
+
+    <script>
+        function toggleDropdown() {
+            var dropdownContent = document.getElementById("dropdown-content");
+            dropdownContent.classList.toggle("show");
+        }
+        // Close the dropdown menu if the user clicks outside of it
+        window.onclick = function(event) {
+            if (!event.target.matches('.user-dropdown-btn')) {
+                var dropdowns = document.getElementsByClassName("dropdown-content");
+                var i;
+                for (i = 0; i < dropdowns.length; i++) {
+                    var openDropdown = dropdowns[i];
+                    if (openDropdown.classList.contains('show')) {
+                        openDropdown.classList.remove('show');
+                    }
+                }
+            }
+        }
+    </script>
 
     <script src="https://canvasjs.com/assets/script/jquery-1.11.1.min.js"></script>
     <script src="https://cdn.canvasjs.com/jquery.canvasjs.min.js"></script>

@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 
+
 {% block content %}
 
 <div class="dd-card">
@@ -7,9 +8,21 @@
     <form method="post" action="#">
         {% csrf_token %}
         {{ form.as_p }}
+
+        {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+                <li class="{{ message.tags }}">{{ message }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        
         <button type="submit" class="dd-button">Download Data</button>
     </form>
+
+    
 </div>
+
 
 
 

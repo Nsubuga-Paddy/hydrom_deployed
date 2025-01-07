@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+
+{% block sidebar %}
+
+{% endblock %}
+
+
+{% block content %}
+
+<div class="dd-card2">
+    <h2>Sign Up</h2>
+  
+    <p style="font-size: 0.8em; color: rgb(104, 100, 100);margin-bottom: 10px; text-align: center;">Upon siging in, you will receive HydroM email and SMS notifications about CASCADED activities</p>
+  
+  <form method="POST" action="">
+    {% csrf_token %}
+    {{form.as_p}}
+
+    <button type="submit">Submit</button>
+  </form>
+
+  <p>You have an account already? Login <a href="{% url 'login' %}">here</a></p>
+</div>
+
+
+
+{% endblock %}
+  
+
+
