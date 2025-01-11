@@ -35,7 +35,7 @@ class UserProfile(models.Model):
     phone_number = models.CharField(
         max_length = 10,
         validators=[
-        RegexValidator(regex='^\d{10}$', message='Phone number must be exactly 10 digits.')
+        RegexValidator(regex=r'^\d{10}$', message='Phone number must be exactly 10 digits.')
     ])
     dam = models.ForeignKey(Dam, on_delete=models.SET_NULL, null=True)
 

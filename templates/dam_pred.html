@@ -10,8 +10,8 @@
             <div class="isimba-pred-card">
                 <div class="pred-column">
                     <div class="pred-sc-card">
-                        <h3>4000mm</h3>
-                        <p>Current Water Level</p>
+                        <h3 id="latestWaterLevel" style="font-size: 25px;text-align: left;width: max-content;"></h3>
+                        <p style="font-size: 17px; width: max-content;">Current Water Level</p>
                     </div>
                   </div>
                   <div class="pred-column">
@@ -42,7 +42,7 @@
         <h3>{{dam.name}} Water Level Prediction Chart</h3>
         </div>
         <div class="isimba-card-content">
-            <div id="chart-container" style="height: 300px;"></div>
+            <div id="waterLevelChart" style="width: 870px; height: 300px; margin-left: 5px;"> </div>
         </div>
     </div>
 </div>
@@ -83,5 +83,67 @@
         </div>
     </div>
 </div> 
+
+<script type="text/javascript">
+    google.charts.load('current', {'packages':['corechart', 'line']});
+
+    var currentDamId = "{{ current_dam_id }}"; // Get the current dam ID from Django template
+
+    google.charts.setOnLoadCallback(drawCharts);
+
+    function drawCharts() {
+        fetchAndUpdateData(); // Initial fetch and draw
+        setInterval(fetchAndUpdateData, 10000); // Update every 10 seconds
+    }
+
+    // ... (drawWaterLevelChart functions)
+    function drawWaterLevelChart(dataArray = [['Time', 'Water Level']]) {
+    var data = google.visualization.arrayToDataTable(dataArray);
+
+    var options = {
+        title: '',
+        hAxis: {title: 'Time', format: 'HH:mm:ss', gridlines: { count: 5 }},
+        vAxis: {minValue: 0, title: ''},
+        legend: 'none',
+        chartArea: { 
+            left: 30, 
+            top: 20, 
+            right: 0, 
+            bottom: 50 
+        },
+        colors: ['#0896FC'],
+        areaOpacity: 0.3,
+        tooltip: { 
+            isHtml: true, 
+            trigger: 'focus' 
+         },
+    };
+
+    var chart = new google.visualization.AreaChart(document.getElementById('waterLevelChart'));
+    chart.draw(data, options);
+}
+
+    async function fetchAndUpdateData() {
+        try {
+            const response = await fetch(`/api/sensor_data/${currentDamId}`); // Use the current dam ID
+            const rtData = await response.json();
+
+            // Prepare data for charts
+            const waterLevelData = [['Time', 'Water Level']].concat(rtData.timestamps.map((t, i) => [t, rtData.waterlevels[i]]));
+
+            // Update the latest water level display
+            if (rtData.waterlevels.length > 0) {
+                const latestWaterLevel = rtData.waterlevels[rtData.waterlevels.length - 1];
+                document.getElementById('latestWaterLevel').innerText = `${latestWaterLevel} mm`;
+            }
+
+            // Redraw charts with new data
+            drawWaterLevelChart(waterLevelData);
+
+        } catch (error) {
+            console.error('Error fetching data:', error);
+        }
+    }
+</script>
 
 {% endblock %}

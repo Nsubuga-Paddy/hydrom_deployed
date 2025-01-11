@@ -4,6 +4,11 @@ google.charts.setOnLoadCallback(mvDispatchChart);
 google.charts.setOnLoadCallback(temperatureChart);
 google.charts.setOnLoadCallback(mvTemperatureChart);
 google.charts.setOnLoadCallback(precipitationChart);
+
+google.charts.setOnLoadCallback(function() {
+  predChart('chartContainer1');
+});
+
 google.charts.setOnLoadCallback(mvPrecipitationChart);
 google.charts.setOnLoadCallback(dischargeChart);
 google.charts.setOnLoadCallback(mvDischargeChart);
@@ -226,7 +231,7 @@ const dummyData = {
   labels: ['8am', '9am', '10am', '11am', '12noon']
 };
 
-function predChart() {
+function predChart(containerId) {
   const actualValues = dummyData.actual_values;
   const predictedValues = dummyData.predicted_values;
   const labels = dummyData.labels;
@@ -254,7 +259,7 @@ function predChart() {
     }
   };
 
-  const chart = new google.visualization.LineChart(document.getElementById('chart-container'));
+  const chart = new google.visualization.LineChart(document.getElementById('containerId'));
   chart.draw(chartData, options);
 }
 

@@ -157,7 +157,7 @@ def dam_pred_view(request, dam_id):
 def system_alarms(request):
     return render(request, 'notifications.html')
 
-#Function to receive data from ESP32 to the database
+#Function to receive data from the hydrom device to the database
 @csrf_exempt
 def store_data(request):
     if request.method == 'POST':
@@ -333,18 +333,17 @@ def split_sequences(sequences, n_steps_in, n_steps_out):
 
 #Preprocessing function to return numpy array sequences data.
 def preprocess_data(data):
-    # Extracting the relevant features (Note: We don't have dispatch and discharge. We shall be predicting water level )
+    # Extracting the relevant features (Note: We don't have dispatch and discharge. 
+    # We shall be predicting water level )
     features = ['precipitation', 'humidity', 'temperature', 'waterlevel']
     df = pd.DataFrame(data.values_list(*features), columns=features)
 
     #separating variable
     df_input = df.iloc[:,:-1]
     df_target = df.iloc[:,-1]
-
     #converting the variables into numpy arrays
     df_input = df_input.to_numpy()
     df_target = df_target.to_numpy()
-
     #converting the output values into 2D format
     df_target = df_target[:,np.newaxis]
 
@@ -368,13 +367,17 @@ def make_predicitions_and_store(data, dam_id):
     dam = get_object_or_404(Dam, pk=dam_id)
     #Loading the model
     model = load_model()
+
+    data = RealTimeSensorData.objects.filter(dam=dam).order_by('timestamp').values_list('waterlevel', flat=True)
     X,y = preprocess_data(data)
     #Making predictions
     predictions = model.predict(X)
 
+    predictons2 = scaler.inverse_transform(predictions)
+
     timestamps = pd.date_range(start=pd.to_datetime('now'), periods=len(predictions), freq='H')
 
-    for i, prediction in enumerate(predictions):
+    for i, prediction in enumerate(predictions2):
         for value in prediction:
             Prediction.objects.create(
                 dam=dam,
@@ -382,5 +385,6 @@ def make_predicitions_and_store(data, dam_id):
                 waterlevel_prediction=round(value, 2)
             )
 
+    pass
 
 
