@@ -20,6 +20,8 @@ from django.conf import settings
 from django.conf.urls.static import static
 from . import views
 
+
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', views.home_view, name='home'),
@@ -39,3 +41,7 @@ urlpatterns = [
 
     path('store-data/', views.store_data, name='store_data'), 
 ]
+
+# Add static files serving during development
+if settings.DEBUG:
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
