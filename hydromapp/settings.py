@@ -24,7 +24,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-cxq(p-hxioag&)7##d81(q75k&7z&&fy4g+-1rwt-u9h$lonky'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['hydromdeployed-production.up.railway.app','192.168.240.76', 'localhost', '127.0.0.1', '172.168.9.74']
 
