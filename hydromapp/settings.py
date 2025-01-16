@@ -24,7 +24,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-cxq(p-hxioag&)7##d81(q75k&7z&&fy4g+-1rwt-u9h$lonky'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['hydromdeployed-production.up.railway.app','192.168.240.76', 'localhost', '127.0.0.1', '172.168.9.74']
 
@@ -88,12 +88,29 @@ ASGI_APPLICATION = 'hydromapp.asgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
+import dj_database_url
+from decouple import config
+
+#DATABASE_URL=postgresql://postgres:ZvBmWaKqUisKnpxmJuyJtkYWeqNRrakf@junction.proxy.rlwy.net:58576/railway
+
+DATABASE_URL= "postgresql://postgres:ZvBmWaKqUisKnpxmJuyJtkYWeqNRrakf@junction.proxy.rlwy.net:58576/railway"
+
+
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': dj_database_url.config(
+        default=DATABASE_URL,
+        conn_max_age=600,
+        ssl_require=True
+    )
 }
+
+
+#DATABASES = {
+#    'default': {
+#        'ENGINE': 'django.db.backends.sqlite3',
+#        'NAME': BASE_DIR / 'db.sqlite3',
+#    }
+#}
 
 
 # Password validation
