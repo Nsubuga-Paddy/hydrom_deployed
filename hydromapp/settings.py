@@ -23,6 +23,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-cxq(p-hxioag&)7##d81(q75k&7z&&fy4g+-1rwt-u9h$lonky'
 
+CSRF_TRUSTED_ORIGINS = [
+    'https://hydromdeployed-production.up.railway.app/',
+]
+
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+
+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
