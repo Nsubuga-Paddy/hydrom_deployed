@@ -30,7 +30,7 @@ DEBUG = True
 ALLOWED_HOSTS = ['hydromdeployed-production.up.railway.app','192.168.240.76', 'localhost', '127.0.0.1', '172.168.9.74']
 
 CSRF_TRUSTED_ORIGINS = [
-    'https://hydromdeployed-production.up.railway.app/',
+    'https://hydromdeployed-production.up.railway.app',
 ]
 
 SESSION_COOKIE_SECURE = True
