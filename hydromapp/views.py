@@ -161,6 +161,12 @@ def system_alarms(request):
 @csrf_exempt
 def store_data(request):
     if request.method == 'POST':
+
+        # Verify the API key
+        api_key = request.headers.get('X-API-Key')
+        if api_key != settings.API_KEY:  # API_KEY is imported from settings.py
+            return JsonResponse({"error": "Invalid or missing API key"}, status=403)
+
         try:
             data = json.loads(request.body)
             dam_id = data.get('dam_id')
@@ -172,6 +178,7 @@ def store_data(request):
             precipitation = float(data.get('precipitation'))
             timestamp = datetime.strptime(data.get('timestamp'), '%Y-%m-%dT%H:%M:%S')  # Adjust format as needed
 
+            #Save data to the database
             RealTimeSensorData.objects.create(
                 dam_id=dam_id, 
                 timestamp=timestamp, 
@@ -184,7 +191,7 @@ def store_data(request):
             )
             return HttpResponse('Data stored successfully.')
         except Exception as e:
-            return JsonResponse({"error": str(e)})
+            return JsonResponse({"error": str(e)}, status=400)
     else:
         return HttpResponse('Invalid request method.')
 
