@@ -40,6 +40,7 @@ urlpatterns = [
     path('api/sensor_data/<int:dam_id>/', views.get_rt_sensor_data, name='get_rt_sensor_data'),
 
     path('store-data/', views.store_data, name='store_data'), 
+    path('store-data-http-proxy', views.store_data_http_proxy, name='store_data_http_proxy'),
 ]
 
 # Add static files serving during development
