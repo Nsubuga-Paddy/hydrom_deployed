@@ -160,37 +160,41 @@ def system_alarms(request):
 
 #Function to receive data from the hydrom device to the database
 @csrf_exempt
-def store_data_http_proxy(request):
-    if request.method == "POST":
-        # Forward the API key to the real endpoint
-        api_key = request.headers.get("X-API-Key")
-        if not api_key or api_key != settings.API_KEY:
+def store_data(request):
+    if request.method == 'POST':
+
+        # Verify the API key
+        api_key = request.headers.get('X-API-Key')
+        if api_key != settings.API_KEY:  # API_KEY is imported from settings.py
             return JsonResponse({"error": "Invalid or missing API key"}, status=403)
 
         try:
             data = json.loads(request.body)
+            dam_id = data.get('dam_id')
+            temperature = float(data.get('temperature'))
+            humidity = int(data.get('humidity'))
+            waterlevel = int(data.get('waterlevel'))
+            dispatch = int(data.get('dispatch'))
+            discharge = int(data.get('discharge'))
+            precipitation = float(data.get('precipitation'))
+            timestamp = datetime.strptime(data.get('timestamp'), '%Y-%m-%dT%H:%M:%S')  # Adjust format as needed
 
-            # Forward the request to the HTTPS endpoint
-            response = requests.post(
-                "https://hydromdeployed-production.up.railway.app/store-data",
-                json=data,
-                headers={"X-API-Key": api_key}
+            #Save data to the database
+            RealTimeSensorData.objects.create(
+                dam_id=dam_id, 
+                timestamp=timestamp, 
+                temperature=temperature, 
+                humidity=humidity, 
+                waterlevel=waterlevel, 
+                dispatch=dispatch, 
+                discharge=discharge, 
+                precipitation=precipitation
             )
-
-            # Return the response from the actual endpoint
-            if response.status_code == 200:
-                return JsonResponse({"message": "Data forwarded and stored successfully."}, status=200)
-            else:
-                try:
-                    return JsonResponse(response.json(), status=response.status_code)
-                except Exception:
-                    return JsonResponse({"error": response.text}, status=response.status_code)
-
+            return HttpResponse('Data stored successfully.')
         except Exception as e:
-            return JsonResponse({"error": f"Proxy error: {str(e)}"}, status=500)
-
-    return JsonResponse({"error": "Method not allowed"}, status=405)
-
+            return JsonResponse({"error": str(e)}, status=400)
+    else:
+        return HttpResponse('Invalid request method.')
 
 #Download data view with login required decorator
 @login_required(login_url='login')
