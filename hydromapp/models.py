@@ -52,7 +52,7 @@ def create_or_update_user_profile (sender, instance, created, **kwargs):
 #realtime data
 class RealTimeSensorData(models.Model):
     dam = models.ForeignKey(Dam, on_delete=models.CASCADE)
-    timestamp = models.DateTimeField()
+    timestamp = models.DateTimeField(auto_now_add=True)
     waterlevel = models.PositiveIntegerField()
     dispatch = models.PositiveIntegerField()
     discharge = models.PositiveIntegerField()
