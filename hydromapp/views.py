@@ -165,11 +165,12 @@ def store_data(request):
 
         # Verify the API key
         api_key = request.headers.get('X-API-Key')
-        if api_key != settings.API_KEY:  # API_KEY is imported from settings.py
+        if api_key != settings.API_KEY:
             return JsonResponse({"error": "Invalid or missing API key"}, status=403)
 
         try:
             data = json.loads(request.body)
+
             dam_id = data.get('dam_id')
             temperature = float(data.get('temperature'))
             humidity = int(data.get('humidity'))
@@ -177,24 +178,27 @@ def store_data(request):
             dispatch = int(data.get('dispatch'))
             discharge = int(data.get('discharge'))
             precipitation = float(data.get('precipitation'))
-            timestamp = datetime.strptime(data.get('timestamp'), '%Y-%m-%dT%H:%M:%S')  # Adjust format as needed
 
-            #Save data to the database
+            # Save data to the database — let Django set the timestamp
             RealTimeSensorData.objects.create(
-                dam_id=dam_id, 
-                timestamp=timestamp, 
-                temperature=temperature, 
-                humidity=humidity, 
-                waterlevel=waterlevel, 
-                dispatch=dispatch, 
-                discharge=discharge, 
+                dam_id=dam_id,
+                temperature=temperature,
+                humidity=humidity,
+                waterlevel=waterlevel,
+                dispatch=dispatch,
+                discharge=discharge,
                 precipitation=precipitation
             )
+
             return HttpResponse('Data stored successfully.')
+
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=400)
+
     else:
         return HttpResponse('Invalid request method.')
+
+
 
 #Download data view with login required decorator
 @login_required(login_url='login')
