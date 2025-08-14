@@ -160,104 +160,77 @@ def system_alarms(request):
     return render(request, 'notifications.html')
 
 
-# views.py
+#Function to receive data from the hydrom device to the database
 from django.views.decorators.csrf import csrf_exempt
-from django.http import JsonResponse, HttpResponseNotAllowed
+from django.http import JsonResponse, HttpResponse
 from django.conf import settings
-from .models import RealTimeSensorData, Dam
 import json
-from decimal import Decimal
-
-def _to_int(v, name):
-    if v is None or v == "":
-        raise ValueError(f"{name} is required")
-    try:
-        # allow "69.0" -> 69
-        return int(float(v))
-    except (TypeError, ValueError):
-        raise ValueError(f"{name} must be a number")
-
-def _to_float(v, name):
-    if v is None or v == "":
-        raise ValueError(f"{name} is required")
-    try:
-        return float(v)
-    except (TypeError, ValueError):
-        raise ValueError(f"{name} must be a number")
-
-def _extract_payload(request):
-    """
-    Return a dict of incoming fields from GET or POST (JSON/form).
-    Raises ValueError if JSON is malformed.
-    """
-    if request.method == "GET":
-        return request.GET
-
-    # POST
-    ctype = (request.headers.get("Content-Type") or "").lower()
-    if "application/json" in ctype:
-        try:
-            return json.loads(request.body.decode("utf-8"))
-        except json.JSONDecodeError as e:
-            raise ValueError(f"Invalid JSON: {e.msg}")
-    elif "application/x-www-form-urlencoded" in ctype or "multipart/form-data" in ctype:
-        return request.POST
-    else:
-        # Try JSON anyway; fall back to form
-        try:
-            return json.loads(request.body.decode("utf-8"))
-        except Exception:
-            return request.POST  # may be empty
+from .models import RealTimeSensorData
 
 @csrf_exempt
 def store_data(request):
-    if request.method not in ("GET", "POST"):
-        return HttpResponseNotAllowed(["GET", "POST"], "Use GET or POST")
+    if request.method in ('POST', 'GET'):
 
-    # Accept API key in header or as ?api_key=... / body
-    api_key = (
-        request.headers.get("X-API-Key")
-        or request.GET.get("api_key")
-        or request.POST.get("api_key")
-    )
-    if api_key != settings.API_KEY:
-        return JsonResponse({"error": "Invalid or missing API key"}, status=403)
-
-    try:
-        data = _extract_payload(request)
-
-        dam_id        = _to_int(data.get("dam_id"), "dam_id")
-        if not Dam.objects.filter(pk=dam_id).exists():
-            return JsonResponse({"error": f"dam_id {dam_id} does not exist"}, status=400)
-
-        temperature   = _to_float(data.get("temperature"), "temperature")
-        humidity      = _to_int(data.get("humidity"), "humidity")
-        waterlevel    = _to_int(data.get("waterlevel"), "waterlevel")
-        dispatch      = _to_int(data.get("dispatch"), "dispatch")
-        discharge     = _to_int(data.get("discharge"), "discharge")
-        precipitation = _to_float(data.get("precipitation"), "precipitation")
-
-        obj = RealTimeSensorData.objects.create(
-            dam_id=dam_id,
-            temperature=Decimal(str(temperature)),   # your model uses DecimalField
-            humidity=humidity,
-            waterlevel=waterlevel,
-            dispatch=dispatch,
-            discharge=discharge,
-            precipitation=Decimal(str(precipitation)),
+        # Verify the API key (header OR ?api_key=/form field for GET/POST)
+        api_key = (
+            request.headers.get('X-API-Key')
+            or request.GET.get('api_key')
+            or request.POST.get('api_key')
         )
+        if api_key != settings.API_KEY:
+            return JsonResponse({"error": "Invalid or missing API key"}, status=403)
 
-        return JsonResponse({"status": "ok", "id": obj.id})
-    except ValueError as e:
-        return JsonResponse({"error": str(e)}, status=400)
-    except Exception as e:
-        # consider logging e/traceback here
-        return JsonResponse({"error": "Unexpected server error", "detail": str(e)}, status=500)
+        try:
+            # Extract incoming data
+            if request.method == 'GET':
+                data = request.GET
+            else:
+                # POST: support JSON or form-encoded
+                ctype = (request.headers.get('Content-Type') or '').lower()
+                if 'application/json' in ctype:
+                    body = request.body.decode('utf-8') or '{}'
+                    data = json.loads(body)
+                else:
+                    # x-www-form-urlencoded / multipart OR raw JSON without header
+                    if request.POST:
+                        data = request.POST
+                    else:
+                        body = request.body.decode('utf-8') or '{}'
+                        try:
+                            data = json.loads(body)
+                        except json.JSONDecodeError:
+                            data = {}
+
+            # Parse & cast fields
+            dam_id = data.get('dam_id')
+            temperature = float(data.get('temperature'))
+            humidity = int(float(data.get('humidity')))        # allow "69.0"
+            waterlevel = int(float(data.get('waterlevel')))
+            dispatch = int(float(data.get('dispatch')))
+            discharge = int(float(data.get('discharge')))
+            precipitation = float(data.get('precipitation'))
+
+            # Save to DB — timestamp is auto-set
+            RealTimeSensorData.objects.create(
+                dam_id=dam_id,
+                temperature=temperature,
+                humidity=humidity,
+                waterlevel=waterlevel,
+                dispatch=dispatch,
+                discharge=discharge,
+                precipitation=precipitation
+            )
+
+            return HttpResponse('Data stored successfully.')
+
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=400)
+
+    else:
+        return HttpResponse('Invalid request....')
 
 
 
-
-#Function to receive data from the hydrom device to the database
 
 #Download data view with login required decorator
 @login_required(login_url='login')
