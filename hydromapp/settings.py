@@ -31,6 +31,7 @@ ALLOWED_HOSTS = ['hydromdeployed-production.up.railway.app','192.168.240.76', 'l
 
 CSRF_TRUSTED_ORIGINS = [
     'https://hydromdeployed-production.up.railway.app',
+    'http://hydromdeployed-production.up.railway.app',
 ]
 
 SESSION_COOKIE_SECURE = True
