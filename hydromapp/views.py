@@ -171,7 +171,7 @@ from .models import RealTimeSensorData
 def store_data(request):
     if request.method in ('POST', 'GET'):
 
-        # Verify the API key (header OR ?api_key=/form field for GET/POST)
+        # Accept API key in header OR as api_key in query/body (for GET/HTTP cases)
         api_key = (
             request.headers.get('X-API-Key')
             or request.GET.get('api_key')
@@ -181,36 +181,47 @@ def store_data(request):
             return JsonResponse({"error": "Invalid or missing API key"}, status=403)
 
         try:
-            # Extract incoming data
+            # ---- Parse incoming data (GET, JSON POST, or form POST) ----
             if request.method == 'GET':
                 data = request.GET
             else:
-                # POST: support JSON or form-encoded
                 ctype = (request.headers.get('Content-Type') or '').lower()
                 if 'application/json' in ctype:
-                    body = request.body.decode('utf-8') or '{}'
-                    data = json.loads(body)
+                    body = (request.body or b'').decode('utf-8')
+                    data = json.loads(body or '{}')
                 else:
                     # x-www-form-urlencoded / multipart OR raw JSON without header
                     if request.POST:
                         data = request.POST
                     else:
-                        body = request.body.decode('utf-8') or '{}'
+                        body = (request.body or b'').decode('utf-8')
                         try:
-                            data = json.loads(body)
+                            data = json.loads(body or '{}')
                         except json.JSONDecodeError:
                             data = {}
 
-            # Parse & cast fields
-            dam_id = data.get('dam_id')
-            temperature = float(data.get('temperature'))
-            humidity = int(float(data.get('humidity')))        # allow "69.0"
-            waterlevel = int(float(data.get('waterlevel')))
-            dispatch = int(float(data.get('dispatch')))
-            discharge = int(float(data.get('discharge')))
+            # ---- Validate presence to avoid float(None)/int(None) ----
+            required = ['dam_id','temperature','humidity','waterlevel','dispatch','discharge','precipitation']
+            missing = [k for k in required if (data.get(k) is None or str(data.get(k)).strip() == '')]
+            if missing:
+                return JsonResponse(
+                    {
+                        "error": f"Missing fields: {', '.join(missing)}",
+                        "hint": "If using HTTP GET, pass values as query params. If POSTing JSON, set Content-Type: application/json."
+                    },
+                    status=400
+                )
+
+            # ---- Parse & cast (allow strings like '69.0') ----
+            dam_id        = int(float(data.get('dam_id')))
+            temperature   = float(data.get('temperature'))
+            humidity      = int(float(data.get('humidity')))
+            waterlevel    = int(float(data.get('waterlevel')))
+            dispatch      = int(float(data.get('dispatch')))
+            discharge     = int(float(data.get('discharge')))
             precipitation = float(data.get('precipitation'))
 
-            # Save to DB — timestamp is auto-set
+            # ---- Save ----
             RealTimeSensorData.objects.create(
                 dam_id=dam_id,
                 temperature=temperature,
@@ -223,11 +234,15 @@ def store_data(request):
 
             return HttpResponse('Data stored successfully.')
 
+        except ValueError as e:
+            # Bad number format, etc.
+            return JsonResponse({"error": str(e)}, status=400)
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=400)
 
     else:
         return HttpResponse('Invalid request....')
+
 
 
 
