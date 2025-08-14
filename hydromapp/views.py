@@ -196,7 +196,7 @@ def store_data(request):
             return JsonResponse({"error": str(e)}, status=400)
 
     else:
-        return HttpResponse('Invalid request method.')
+        return HttpResponse('Invalid request....')
 
 
 
