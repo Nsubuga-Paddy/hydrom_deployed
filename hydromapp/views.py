@@ -1,4 +1,4 @@
-from .models import Dam, RealTimeSensorData, Notification, RemoteSensingData, Prediction
+from .models import Dam, RealTimeSensorData, Notification, RemoteSensingData, Prediction, DamPrecipitationState
 
 #Importing random sensor data
 import random
@@ -26,6 +26,9 @@ from django.http import JsonResponse
 
 from .forms import DamSelectionForm, CustomUserCreationForm
 import csv
+
+from django.utils import timezone
+from django.db.models import ForeignKey, Min, Max
 
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
@@ -83,7 +86,7 @@ def get_rt_sensor_data(request, dam_id):
         'waterlevels': [entry.waterlevel for entry in rt_sensor_data],
         'dispatchs': [entry.dispatch for entry in rt_sensor_data],
         'discharges': [entry.discharge for entry in rt_sensor_data],
-        'precipitations': [entry.precipitation for entry in rt_sensor_data],
+        'precipitations': [float(entry.precipitation) for entry in rt_sensor_data],  # Already stored as delta
         'humiditys': [entry.humidity for entry in rt_sensor_data],
         'temperatures': [entry.temperature for entry in rt_sensor_data],
     }
@@ -174,20 +177,30 @@ def store_data(request):
             dam_id = data.get('dam_id')
             temperature = float(data.get('temperature'))
             humidity = int(data.get('humidity'))
-            waterlevel = int(data.get('waterlevel'))
+            waterlevel_cm = float(data.get('waterlevel'))  # Receiving in cm
+            waterlevel_meters = round(waterlevel_cm / 100, 2)  # Convert cm to meters
             dispatch = int(data.get('dispatch'))
             discharge = int(data.get('discharge'))
-            precipitation = float(data.get('precipitation'))
+            precipitation_cumulative = float(data.get('precipitation'))  # Sensor sends cumulative
+
+            # Convert cumulative to delta (distinct value per interval)
+            state, _ = DamPrecipitationState.objects.get_or_create(
+                dam_id=dam_id,
+                defaults={'last_cumulative': 0}
+            )
+            precipitation_delta = max(0, precipitation_cumulative - float(state.last_cumulative))
+            state.last_cumulative = precipitation_cumulative
+            state.save()
 
             # Save data to the database — let Django set the timestamp
             RealTimeSensorData.objects.create(
                 dam_id=dam_id,
                 temperature=temperature,
                 humidity=humidity,
-                waterlevel=waterlevel,
+                waterlevel=waterlevel_meters,  # Store in meters
                 dispatch=dispatch,
                 discharge=discharge,
-                precipitation=precipitation
+                precipitation=round(precipitation_delta, 2)  # Store delta in mm
             )
 
             return HttpResponse('Data stored successfully.')
@@ -204,7 +217,28 @@ def store_data(request):
 @login_required(login_url='login')
 def download_data_view(request):
     dams = Dam.objects.order_by('order')
-    
+
+    # Compute available data range per dam and data type for display
+    for dam in dams:
+        # Realtime
+        rt_agg = RealTimeSensorData.objects.filter(dam=dam).aggregate(
+            min_ts=Min('timestamp'),
+            max_ts=Max('timestamp'),
+        )
+        dam.realtime_range = {'min': rt_agg['min_ts'], 'max': rt_agg['max_ts']} if (rt_agg['min_ts'] and rt_agg['max_ts']) else None
+        # GIS
+        rs_agg = RemoteSensingData.objects.filter(dam=dam).aggregate(
+            min_ts=Min('timestamp'),
+            max_ts=Max('timestamp'),
+        )
+        dam.gis_range = {'min': rs_agg['min_ts'], 'max': rs_agg['max_ts']} if (rs_agg['min_ts'] and rs_agg['max_ts']) else None
+        # Prediction
+        pred_agg = Prediction.objects.filter(dam=dam).aggregate(
+            min_ts=Min('timestamp'),
+            max_ts=Max('timestamp'),
+        )
+        dam.prediction_range = {'min': pred_agg['min_ts'], 'max': pred_agg['max_ts']} if (pred_agg['min_ts'] and pred_agg['max_ts']) else None
+
     if request.method == 'POST':
         form = DamSelectionForm(request.POST)
         if form.is_valid():
@@ -214,50 +248,70 @@ def download_data_view(request):
             end_date = form.cleaned_data['end_date']
 
             for data_type in data_categories:
-                # Ensure start_date is at the beginning of the day and end_date covers the end of the day
-                start_datetime = datetime.combine(start_date, datetime.min.time())
-                end_datetime = datetime.combine(end_date, datetime.max.time())
+                # Use timezone-aware datetimes (Django USE_TZ=True)
+                start_datetime = timezone.make_aware(
+                    datetime.combine(start_date, datetime.min.time()),
+                    timezone.get_current_timezone()
+                )
+                end_datetime = timezone.make_aware(
+                    datetime.combine(end_date, datetime.max.time()),
+                    timezone.get_current_timezone()
+                )
 
                 # Filter the data based on the selected type and date range
                 if data_type == 'realtime':
-                    data = RealTimeSensorData.objects.filter(dam=selected_dam, timestamp__range=[start_datetime, end_datetime])
+                    data = RealTimeSensorData.objects.filter(
+                        dam=selected_dam,
+                        timestamp__range=[start_datetime, end_datetime]
+                    )
                     model = RealTimeSensorData
-                
+
                 elif data_type == 'gis':
-                    data = RemoteSensingData.objects.filter(dam=selected_dam, timestamp__range=[start_datetime, end_datetime])
+                    data = RemoteSensingData.objects.filter(
+                        dam=selected_dam,
+                        timestamp__range=[start_datetime, end_datetime]
+                    )
                     model = RemoteSensingData
-                
+
                 elif data_type == 'prediction':
-                    data = Prediction.objects.filter(dam=selected_dam, timestamp__range=[start_datetime, end_datetime])
+                    data = Prediction.objects.filter(
+                        dam=selected_dam,
+                        timestamp__range=[start_datetime, end_datetime]
+                    )
                     model = Prediction
+                else:
+                    continue  # Skip unknown data types
 
                 if not data.exists():
-                    # If no data is available, add a message and redirect or re-render the form page
                     messages.error(request, "No data available for the selected criteria.")
-                    context= {'dams':dams, 'form':form}
+                    context = {'dams': dams, 'form': form}
                     return render(request, 'download-data.html', context)
 
-                #Prepare HttpResponse
-                response = HttpResponse(content_type = 'text/csv')
-                response['Content-Disposition'] = f'attachement; filename="{data_type}_data.csv"'
+                # Build field list: use attname (e.g. dam_id) for ForeignKey to avoid N+1 queries
+                field_names = []
+                for field in model._meta.fields:
+                    if isinstance(field, ForeignKey):
+                        field_names.append(field.attname)  # e.g. 'dam_id'
+                    else:
+                        field_names.append(field.name)
+
+                response = HttpResponse(content_type='text/csv')
+                response['Content-Disposition'] = f'attachment; filename="{data_type}_data.csv"'
 
                 writer = csv.writer(response)
+                writer.writerow(field_names)
 
-                # Get field names (headers) dynamically from the model
+                # Use values_list with iterator() for memory efficiency on large datasets
+                # Limit to 100k rows to prevent timeout/OOM on Railway
+                MAX_EXPORT_ROWS = 100000
                 if model:
-                    field_names = [field.name for field in model._meta.fields]
-                    writer.writerow(field_names)
-
-                    # Write data rows
-                    for item in data:
-                        row_data = [getattr(item, field) for field in field_names]
-                        writer.writerow(row_data)
+                    for row in data.values_list(*field_names)[:MAX_EXPORT_ROWS].iterator(chunk_size=1000):
+                        writer.writerow(row)
 
                 return response
             
     else:
         form = DamSelectionForm()
-
 
     context = {'dams': dams, 'form': form}
     return render(request, 'download-data.html', context)
@@ -397,5 +451,9 @@ def make_predicitions_and_store(data, dam_id):
             )
 
     pass
+
+def new_frontend_view(request):
+    """View for the new frontend"""
+    return render(request, 'new_frontend.html')
 
 

@@ -4,6 +4,38 @@
 {% block content %}
 
 <div class="dd-card">
+    <!-- Available data range info -->
+    <div class="data-range-info" style="margin-bottom: 1.5rem; padding: 1rem; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #0896FC;">
+        <h4 style="margin: 0 0 0.75rem 0; color: #2c3e50;">Available Data Range</h4>
+        <p style="margin: 0 0 0.5rem 0; font-size: 14px; color: #6c757d;">Select dates within these ranges for each dam:</p>
+        <ul style="margin: 0; padding-left: 1.25rem; font-size: 14px;">
+            {% for dam in dams %}
+            <li style="margin-bottom: 0.5rem;">
+                <strong>{{ dam.name }}:</strong>
+                <span style="color: #0896FC;">
+                    {% if dam.realtime_range %}
+                        Realtime: {{ dam.realtime_range.min|date:"Y-m-d" }} to {{ dam.realtime_range.max|date:"Y-m-d" }}
+                    {% else %}
+                        Realtime: No data
+                    {% endif %}
+                    |
+                    {% if dam.gis_range %}
+                        GIS: {{ dam.gis_range.min|date:"Y-m-d" }} to {{ dam.gis_range.max|date:"Y-m-d" }}
+                    {% else %}
+                        GIS: No data
+                    {% endif %}
+                    |
+                    {% if dam.prediction_range %}
+                        Prediction: {{ dam.prediction_range.min|date:"Y-m-d" }} to {{ dam.prediction_range.max|date:"Y-m-d" }}
+                    {% else %}
+                        Prediction: No data
+                    {% endif %}
+                </span>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+
     <!--download data form-->
     <form method="post" action="#">
         {% csrf_token %}

@@ -7,7 +7,7 @@ def notification_processor(request):
 def dams_processor(request):
     dams = Dam.objects.order_by('order').prefetch_related('realtimesensordata_set', 'remotesensingdata_set')
     for dam in dams:
-        # Fetching the latest RealTimeSensorData
+        # Fetching the latest RealTimeSensorData (precipitation stored as delta)
         latest_realtime_data = dam.realtimesensordata_set.order_by('-timestamp').first()
         dam.latest_realtime_data = latest_realtime_data
 

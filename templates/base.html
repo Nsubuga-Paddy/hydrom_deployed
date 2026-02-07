@@ -83,7 +83,7 @@
             <li>
                 <img src="{% static 'hydromapp/images/dam.png' %}" alt="">
                 <p>Lake Nalubaale <br> Jinja Pier </p>
-                <p id="dam-paragraph">Water level: 1500mm</p>
+                <p id="dam-paragraph">Water level: 1.5m</p>
             </li>
 
             {% for dam in global_dams %}
@@ -94,7 +94,7 @@
                     <p>{{ dam.name }}</p>
                     {% if dam.latest_realtime_data %}
                         <p id="dam-paragraph  dam-paragraph-{{ dam.id }}" style="font-size: 12px; font-weight: 600;">
-                            Water level: <span id="waterlevel-{{ dam.id }}">{{ dam.latest_realtime_data.waterlevel }}mm</span> <br> 
+                            Water level: <span id="waterlevel-{{ dam.id }}">{{ dam.latest_realtime_data.waterlevel }}m</span> <br> 
                             Dispatch: <span id="dispatch-{{ dam.id }}">{{ dam.latest_realtime_data.dispatch }}MW</span> <br> 
                             Discharge: <span id="discharge-{{ dam.id }}">{{ dam.latest_realtime_data.discharge }} m<sup>3</sup>/s</span>
                         </p>
@@ -205,7 +205,7 @@
                 success: function(response) {
                     // Example: Update the water level for a specific dam
                     // Ensure your HTML elements have IDs or classes that can be targeted
-                    $('#waterlevel-' + damId).text(response.waterlevels[0] + 'mm');
+                    $('#waterlevel-' + damId).text(response.waterlevels[0] + 'm');
                     $('#humidity-' + damId).text(response.humiditys[0] + '%');
                     $('#dispatch-' + damId).text(response.dispatchs[0] + 'MW');
                     $('#temperature-' + damId).text(response.temperatures[0] + '°C');

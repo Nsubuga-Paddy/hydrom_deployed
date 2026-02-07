@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import User
-from .models import Dam, Notification, UserProfile
+from .models import Dam, Notification, UserProfile, DamPrecipitationState
 
 class DamAdmin(admin.ModelAdmin):
     list_display = ('name', 'location', 'capacity', 'order')  # Display the order field in the admin list view
@@ -33,6 +33,7 @@ class UserAdmin(BaseUserAdmin):
 
 # Register the Dam and UserRegistration model with the custom admin class
 admin.site.register(Dam, DamAdmin)
+admin.site.register(DamPrecipitationState)
 admin.site.unregister(User)
 admin.site.register(User, UserAdmin)
 

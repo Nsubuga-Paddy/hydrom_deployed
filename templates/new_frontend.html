@@ -1,0 +1,229 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hydro-M - Smart Dam Monitoring</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="{% static 'hydromapp/images/logo.png' %}">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.css" rel="stylesheet">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+    
+    <!-- Charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="{% static 'hydromapp/css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'hydromapp/css/responsive.css' %}">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-left">
+            <button class="menu-toggle" id="menuToggle">
+                <i class="bx bx-menu"></i>
+            </button>
+            <a href="{% url 'home' %}" class="logo">
+                <img src="{% static 'hydromapp/images/logo.png' %}" alt="Hydro-M">
+            </a>
+        </div>
+
+        <nav class="navbar" id="navbar">
+            <ul class="nav-list">
+                <li><a href="{% url 'home' %}" class="nav-link active">Dashboard</a></li>
+                <li><a href="{% url 'notifications' %}" class="nav-link">System Alarms</a></li>
+                <li><a href="{% url 'about' %}" class="nav-link">About Us</a></li>
+                <li><a href="{% url 'contact' %}" class="nav-link">Contact</a></li>
+                <li><a href="{% url 'download' %}" class="nav-link">Download Data</a></li>
+                <li><a href="{% url 'help' %}" class="nav-link">Help</a></li>
+            </ul>
+        </nav>
+
+        <div class="header-right">
+            <div class="user-menu">
+                {% if request.user.is_authenticated %}
+                    <button class="user-btn">
+                        <i class="ri-user-fill"></i>
+                        <span>{{ request.user.username }}</span>
+                        <i class="ri-arrow-down-s-fill"></i>
+                    </button>
+                    <div class="dropdown-menu">
+                        <a href="#" class="dropdown-item">Profile</a>
+                        <a href="#" class="dropdown-item">Settings</a>
+                        <a href="{% url 'logout' %}" class="dropdown-item">Logout</a>
+                    </div>
+                {% else %}
+                    <a href="{% url 'login' %}" class="btn btn-primary">
+                        <i class="ri-user-fill"></i>
+                        Sign In
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <div class="main-container">
+        <!-- Left Sidebar - Dams -->
+        <aside class="sidebar-left" id="sidebarLeft">
+            <div class="sidebar-header">
+                <h3>Dam Reservoirs</h3>
+            </div>
+            <div class="dams-list" id="damsList">
+                <!-- Dams will be populated by JavaScript -->
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Mobile Dam Selector -->
+            <div class="mobile-dam-selector" id="mobileDamSelector">
+                <div class="selector-header">
+                    <img src="{% static 'hydromapp/images/dam.png' %}" alt="Dam Icon">
+                    <h3>Select a Dam</h3>
+                </div>
+                <div class="dam-options" id="mobileDamOptions">
+                    <!-- Mobile dam options -->
+                </div>
+            </div>
+
+            <!-- Dashboard Content -->
+            <div class="dashboard-content">
+                <!-- Real-time Monitoring Section -->
+                <section class="monitoring-section">
+                    <div class="section-header">
+                        <div class="section-title">
+                            <h2>Real-time Monitoring</h2>
+                            <div class="live-indicator">
+                                <span class="pulse"></span>
+                                <span>LIVE</span>
+                            </div>
+                        </div>
+                        <div class="datetime-display">
+                            <div class="date" id="currentDate">Loading...</div>
+                            <div class="time" id="currentTime">Loading...</div>
+                        </div>
+                    </div>
+                    
+                    <div class="monitoring-grid" id="monitoringGrid">
+                        <!-- Monitoring cards will be populated by JavaScript -->
+                    </div>
+                </section>
+
+                <!-- Predictions Section -->
+                <section class="predictions-section">
+                    <div class="section-header">
+                        <h2>Water Level Predictions</h2>
+                        <div class="prediction-controls">
+                            <button class="btn-secondary" id="refreshPredictions">
+                                <i class="ri-refresh-line"></i>
+                                Refresh
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="predictions-grid" id="predictionsGrid">
+                        <!-- Prediction charts will be populated by JavaScript -->
+                    </div>
+                </section>
+
+                <!-- GIS Monitoring Section -->
+                <section class="gis-section">
+                    <div class="section-header">
+                        <h2>GIS Monitoring</h2>
+                        <div class="gis-controls">
+                            <button class="btn-secondary" id="refreshGIS">
+                                <i class="ri-refresh-line"></i>
+                                Update
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="gis-grid" id="gisGrid">
+                        <!-- GIS content will be populated by JavaScript -->
+                    </div>
+                </section>
+            </div>
+        </main>
+
+        <!-- Right Sidebar - Categories & Alarms -->
+        <aside class="sidebar-right" id="sidebarRight">
+            <div class="sidebar-card">
+                <!-- Search -->
+                <div class="search-section">
+                    <form class="search-form">
+                        <div class="search-input-wrapper">
+                            <input type="text" placeholder="Search dam reservoirs" class="search-input">
+                            <i class="fa fa-search search-icon"></i>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Categories -->
+                <div class="categories-section">
+                    <h4>Monitoring Categories</h4>
+                    <ul class="categories-list">
+                        <li class="category-item active">
+                            <a href="#" class="category-link">
+                                <i class="ri-dashboard-line"></i>
+                                Real-time
+                            </a>
+                        </li>
+                        <li class="category-item">
+                            <a href="#" class="category-link">
+                                <i class="ri-map-pin-line"></i>
+                                GIS Monitoring
+                            </a>
+                        </li>
+                        <li class="category-item">
+                            <a href="#" class="category-link">
+                                <i class="ri-line-chart-line"></i>
+                                Predictions
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Alarms -->
+                <div class="alarms-section">
+                    <div class="alarms-header">
+                        <h4>System Alarms</h4>
+                        <a href="{% url 'notifications' %}" class="alarms-link">View All (5)</a>
+                    </div>
+                    
+                    <div class="alarms-list" id="alarmsList">
+                        <!-- Alarms will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner">
+            <div class="spinner"></div>
+            <p>Loading data...</p>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="{% static 'hydromapp/js/config.js' %}"></script>
+    <script src="{% static 'hydromapp/js/utils.js' %}"></script>
+    <script src="{% static 'hydromapp/js/charts.js' %}"></script>
+    <script src="{% static 'hydromapp/js/data-manager.js' %}"></script>
+    <script src="{% static 'hydromapp/js/ui-manager.js' %}"></script>
+    <script src="{% static 'hydromapp/js/app.js' %}"></script>
+</body>
+</html> 

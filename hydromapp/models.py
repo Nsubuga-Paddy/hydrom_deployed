@@ -49,14 +49,24 @@ def create_or_update_user_profile (sender, instance, created, **kwargs):
     instance.userprofile.save()
 
 
+# Tracks last cumulative precipitation per dam (for computing delta on next incoming reading)
+class DamPrecipitationState(models.Model):
+    dam = models.OneToOneField(Dam, on_delete=models.CASCADE, primary_key=True)
+    last_cumulative = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.dam.name}: {self.last_cumulative}"
+
+
 #realtime data
 class RealTimeSensorData(models.Model):
     dam = models.ForeignKey(Dam, on_delete=models.CASCADE)
     timestamp = models.DateTimeField(auto_now_add=True)
-    waterlevel = models.PositiveIntegerField()
+    waterlevel = models.DecimalField(max_digits=10, decimal_places=2, help_text="Water level in meters")
     dispatch = models.PositiveIntegerField()
     discharge = models.PositiveIntegerField()
-    precipitation = models.DecimalField(max_digits=10, decimal_places=2)
+    precipitation = models.DecimalField(max_digits=10, decimal_places=2, help_text="Precipitation delta in mm (distinct value per interval)")
     humidity = models.PositiveIntegerField()
     temperature = models.DecimalField(max_digits=5, decimal_places=2)
 
@@ -64,7 +74,7 @@ class RealTimeSensorData(models.Model):
 class RemoteSensingData(models.Model):
     dam = models.ForeignKey(Dam, on_delete=models.CASCADE)
     timestamp = models.DateTimeField()
-    waterlevel = models.PositiveIntegerField()
+    waterlevel = models.DecimalField(max_digits=10, decimal_places=2, help_text="Water level in meters")
     precipitation = models.DecimalField(max_digits=10, decimal_places=2)
     humidity = models.PositiveIntegerField()
     temperature = models.DecimalField(max_digits=5, decimal_places=2)

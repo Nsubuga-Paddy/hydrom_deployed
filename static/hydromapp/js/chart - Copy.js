@@ -400,7 +400,7 @@ function predChart() {
   const options = {
       title: '',
       vAxis: {
-          title: 'mm'
+          title: 'm'
       },
       colors: ['#0896FC','#FF69B4'],
       chartArea: {
@@ -432,7 +432,7 @@ function mvPredChart() {
   const options = {
       title: '',
       vAxis: {
-          title: 'mm'
+          title: 'm'
       },
       legend: {
         position: 'bottom'

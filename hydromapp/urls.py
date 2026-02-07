@@ -25,6 +25,7 @@ from . import views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', views.home_view, name='home'),
+    path('new-frontend/', views.new_frontend_view, name='new_frontend'),
     path('about-us.html/', views.about_us, name='about'),
     path('contact-us.html/', views.contact_us, name='contact'),
     path('download-data.html/', views.download_data_view, name='download'),

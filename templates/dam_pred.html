@@ -103,7 +103,7 @@
     var options = {
         title: '',
         hAxis: {title: 'Time', format: 'HH:mm:ss', gridlines: { count: 5 }},
-        vAxis: {minValue: 0, title: ''},
+        vAxis: {minValue: 0, title: 'm'},
         legend: 'none',
         chartArea: { 
             left: 30, 
@@ -134,7 +134,7 @@
             // Update the latest water level display
             if (rtData.waterlevels.length > 0) {
                 const latestWaterLevel = rtData.waterlevels[rtData.waterlevels.length - 1];
-                document.getElementById('latestWaterLevel').innerText = `${latestWaterLevel} mm`;
+                document.getElementById('latestWaterLevel').innerText = `${latestWaterLevel} m`;
             }
 
             // Redraw charts with new data

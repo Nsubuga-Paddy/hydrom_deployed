@@ -20,7 +20,7 @@
                         <div class="slider-column">
                             <div class="isimba-column">
                                 <div class="isimba-sc-card">
-                                    <h3> mm</h3>
+                                    <h3>{% if remote_sensing_data %}{{ remote_sensing_data.waterlevel }}{% else %}-{% endif %}m</h3>
                                     <p>Water Level</p>
                                 </div>
                                 <div class="isimba-sc-card">
