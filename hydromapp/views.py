@@ -33,11 +33,8 @@ from django.db.models import ForeignKey, Min, Max
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 
-from sklearn.preprocessing import MinMaxScaler
-import numpy as np 
-import pandas as pd 
-from keras.models import model_from_json, load_model
-import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
 import io
 import base64
 # create a new view that retrieves the dams from the database and passes them to a context variable.
@@ -239,6 +236,9 @@ def download_data_view(request):
         )
         dam.prediction_range = {'min': pred_agg['min_ts'], 'max': pred_agg['max_ts']} if (pred_agg['min_ts'] and pred_agg['max_ts']) else None
 
+    # Isimba dam for data range display (only show Isimba)
+    isimba_dam = next((d for d in dams if 'isimba' in d.name.lower()), None)
+
     if request.method == 'POST':
         form = DamSelectionForm(request.POST)
         if form.is_valid():
@@ -284,7 +284,7 @@ def download_data_view(request):
 
                 if not data.exists():
                     messages.error(request, "No data available for the selected criteria.")
-                    context = {'dams': dams, 'form': form}
+                    context = {'dams': dams, 'form': form, 'isimba_dam': isimba_dam}
                     return render(request, 'download-data.html', context)
 
                 # Build field list: use attname (e.g. dam_id) for ForeignKey to avoid N+1 queries
@@ -313,7 +313,7 @@ def download_data_view(request):
     else:
         form = DamSelectionForm()
 
-    context = {'dams': dams, 'form': form}
+    context = {'dams': dams, 'form': form, 'isimba_dam': isimba_dam}
     return render(request, 'download-data.html', context)
 
 #Creating a user registration form
@@ -364,6 +364,7 @@ def logoutUser(request):
 #FUNCTIONS FOR PROCESSING DATA AND LOADING PPREDICTION MODEL
 #Loading the model
 def load_model():
+    from keras.models import model_from_json
     #Loading the model architecture from the JSON file
     with open('pred_model.json','r') as json_file:
         loaded_model_json = json_file.read()
@@ -398,6 +399,7 @@ def split_sequences(sequences, n_steps_in, n_steps_out):
 
 #Preprocessing function to return numpy array sequences data.
 def preprocess_data(data):
+    from sklearn.preprocessing import MinMaxScaler
     # Extracting the relevant features (Note: We don't have dispatch and discharge. 
     # We shall be predicting water level )
     features = ['precipitation', 'humidity', 'temperature', 'waterlevel']

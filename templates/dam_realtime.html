@@ -129,14 +129,9 @@
             <div class="slider-column">
               <div class="isimba-column">
                 <div class="isimba-sc-card">
-                  <h3
-                    id="latestWaterLevel"
-                    style="
-                      font-size: 25px;
-                      text-align: left;
-                      width: max-content;
-                    "
-                  ></h3>
+                  <h3 id="waterlevel-{{ dam.id }}">
+                    {{dam.latest_realtime_data.waterlevel}}m
+                  </h3>
                   <p>Water Level</p>
                 </div>
                 <div class="isimba-sc-card">
@@ -179,7 +174,7 @@
             <div class="slider-column">
               <div class="isimba-column">
                 <div class="isimba-sc-card">
-                  <h3 style="font-size: 12px">No data available</h3>
+                  <h3 id="waterlevel-{{ dam.id }}" style="font-size: 12px">No data available</h3>
                   <p>Water Level</p>
                 </div>
                 <div class="isimba-sc-card">
@@ -475,15 +470,6 @@
       const humidityData = [["Time", "Humidyt"]].concat(
         rtData.timestamps.map((t, i) => [t, rtData.humiditys[i]])
       );
-
-      // Update the latest water level display
-      if (rtData.waterlevels.length > 0) {
-        const latestWaterLevel =
-          rtData.waterlevels[rtData.waterlevels.length - 1];
-        document.getElementById(
-          "latestWaterLevel"
-        ).innerText = `${latestWaterLevel} m`;
-      }
 
       // Redraw charts with new data
       drawWaterLevelChart(waterLevelData);

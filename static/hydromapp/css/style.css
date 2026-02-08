@@ -1195,12 +1195,72 @@ margin: 10px;
     margin-left: 155px;
     box-shadow: 1.5px 1.5px 1.5px 1.5px rgba(0.2,0.2,0.2,0.2);
 }
+.dd-download-layout{
+    width: auto;
+    min-width: 55rem;
+    height: auto;
+    min-height: 413px;
+    padding: 2rem;
+    justify-content: flex-start;
+    gap: 2rem;
+}
+.dd-download-layout .dd-form{
+    flex: 1;
+    min-width: 280px;
+    max-width: 400px;
+    width: 100%;
+    margin: 0;
+}
 .dd-card form{
    width: 75%;
    margin: 0 auto;
    display: flex;
    flex-direction: column;
    gap: 20px;
+}
+.dd-data-range-sidebar{
+    width: 260px;
+    padding: 1.25rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border-left: 4px solid var(--main-color);
+    align-self: flex-start;
+}
+.dd-sidebar-title{
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-color);
+    margin: 0 0 0.75rem 0;
+}
+.dd-range-list{
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+.dd-range-item{
+    font-size: 12px;
+    color: #6c757d;
+    line-height: 1.4;
+}
+.dd-range-label{
+    font-weight: 600;
+    color: var(--text-color);
+    display: inline-block;
+    min-width: 70px;
+}
+.dd-range-dates{
+    color: var(--main-color);
+}
+@media (max-width: 900px){
+    .dd-download-layout{
+        flex-direction: column;
+        min-width: auto;
+        width: 100%;
+        margin-left: 0;
+    }
+    .dd-data-range-sidebar{
+        width: 100%;
+    }
 }
 .dd-card form p{
     margin: 0;
