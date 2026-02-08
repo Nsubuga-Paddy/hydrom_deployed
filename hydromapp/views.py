@@ -80,7 +80,7 @@ def get_rt_sensor_data(request, dam_id):
 
     rt_data = {
         'timestamps': [entry.timestamp.strftime("%Y-%m-%d %H:%M:%S") for entry in rt_sensor_data],
-        'waterlevels': [entry.waterlevel for entry in rt_sensor_data],
+        'waterlevels': [float(entry.waterlevel) for entry in rt_sensor_data],
         'dispatchs': [entry.dispatch for entry in rt_sensor_data],
         'discharges': [entry.discharge for entry in rt_sensor_data],
         'precipitations': [float(entry.precipitation) for entry in rt_sensor_data],  # Already stored as delta
@@ -174,8 +174,11 @@ def store_data(request):
             dam_id = data.get('dam_id')
             temperature = float(data.get('temperature'))
             humidity = int(data.get('humidity'))
-            waterlevel_cm = float(data.get('waterlevel'))  # Receiving in cm
-            waterlevel_meters = round(waterlevel_cm / 100, 2)  # Convert cm to meters
+            # Sensor sends water level in meters - use as-is, no conversion
+            raw_waterlevel = data.get('waterlevel') or data.get('water_level') or data.get('WaterLevel')
+            if isinstance(raw_waterlevel, str):
+                raw_waterlevel = str(raw_waterlevel).rstrip('mM').strip()
+            waterlevel_meters = round(float(raw_waterlevel), 1)
             dispatch = int(data.get('dispatch'))
             discharge = int(data.get('discharge'))
             precipitation_cumulative = float(data.get('precipitation'))  # Sensor sends cumulative

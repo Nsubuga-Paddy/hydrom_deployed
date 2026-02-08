@@ -134,7 +134,7 @@
             // Update the latest water level display
             if (rtData.waterlevels.length > 0) {
                 const latestWaterLevel = rtData.waterlevels[rtData.waterlevels.length - 1];
-                document.getElementById('latestWaterLevel').innerText = `${latestWaterLevel} m`;
+                document.getElementById('latestWaterLevel').innerText = `${parseFloat(latestWaterLevel).toFixed(1)} m`;
             }
 
             // Redraw charts with new data

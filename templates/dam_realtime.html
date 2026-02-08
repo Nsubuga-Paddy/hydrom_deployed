@@ -130,7 +130,7 @@
               <div class="isimba-column">
                 <div class="isimba-sc-card">
                   <h3 id="waterlevel-{{ dam.id }}">
-                    {{dam.latest_realtime_data.waterlevel}}m
+                    {{ dam.latest_realtime_data.waterlevel|floatformat:1 }}m
                   </h3>
                   <p>Water Level</p>
                 </div>

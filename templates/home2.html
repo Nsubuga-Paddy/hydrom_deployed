@@ -59,7 +59,7 @@
                                         <div class="slider-column1">
                                             <div class="column">
                                             <div class="sc-card">
-                                                <h3 id="waterlevel-{{ dam.id }}">{{dam.latest_realtime_data.waterlevel}}m</h3>
+                                                <h3 id="waterlevel-{{ dam.id }}">{{ dam.latest_realtime_data.waterlevel|floatformat:1 }}m</h3>
                                                 <p>Current Water Level</p>
                                             </div>
                                             <div class="sc-card">
@@ -210,7 +210,7 @@
                                     <div class="slider-column1">
                                         <div class="column">
                                         <div class="sc-card">
-                                            <h3>{{ dam.latest_remote_data.waterlevel }}m</h3>
+                                            <h3>{{ dam.latest_remote_data.waterlevel|floatformat:1 }}m</h3>
                                             <p>Current Water Level</p>
                                         </div>
                                         <div class="sc-card">
