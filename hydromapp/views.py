@@ -178,7 +178,7 @@ def store_data(request):
             raw_waterlevel = data.get('waterlevel') or data.get('water_level') or data.get('WaterLevel')
             if isinstance(raw_waterlevel, str):
                 raw_waterlevel = str(raw_waterlevel).rstrip('mM').strip()
-            waterlevel_meters = round(float(raw_waterlevel), 1)
+            waterlevel_meters = round(float(raw_waterlevel), 3)
             dispatch = int(data.get('dispatch'))
             discharge = int(data.get('discharge'))
             precipitation_cumulative = float(data.get('precipitation'))  # Sensor sends cumulative

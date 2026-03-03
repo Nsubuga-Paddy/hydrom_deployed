@@ -63,7 +63,7 @@ class DamPrecipitationState(models.Model):
 class RealTimeSensorData(models.Model):
     dam = models.ForeignKey(Dam, on_delete=models.CASCADE)
     timestamp = models.DateTimeField(auto_now_add=True)
-    waterlevel = models.DecimalField(max_digits=10, decimal_places=2, help_text="Water level in meters")
+    waterlevel = models.DecimalField(max_digits=10, decimal_places=3, help_text="Water level in meters")
     dispatch = models.PositiveIntegerField()
     discharge = models.PositiveIntegerField()
     precipitation = models.DecimalField(max_digits=10, decimal_places=2, help_text="Precipitation delta in mm (distinct value per interval)")
@@ -74,7 +74,7 @@ class RealTimeSensorData(models.Model):
 class RemoteSensingData(models.Model):
     dam = models.ForeignKey(Dam, on_delete=models.CASCADE)
     timestamp = models.DateTimeField()
-    waterlevel = models.DecimalField(max_digits=10, decimal_places=2, help_text="Water level in meters")
+    waterlevel = models.DecimalField(max_digits=10, decimal_places=3, help_text="Water level in meters")
     precipitation = models.DecimalField(max_digits=10, decimal_places=2)
     humidity = models.PositiveIntegerField()
     temperature = models.DecimalField(max_digits=5, decimal_places=2)
@@ -83,7 +83,7 @@ class RemoteSensingData(models.Model):
 class Prediction(models.Model):
     dam = models.ForeignKey(Dam, on_delete=models.CASCADE)
     timestamp = models.DateTimeField()
-    waterlevel_prediction = models.DecimalField(max_digits=10, decimal_places=2)
+    waterlevel_prediction = models.DecimalField(max_digits=10, decimal_places=3)
 
 #notifications model that allows notifications based on sensor data
 class Notification(models.Model):
