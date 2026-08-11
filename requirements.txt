@@ -37,6 +37,7 @@ mdurl==0.1.2
 ml-dtypes==0.4.1
 namex==0.0.8
 numpy==2.0.2
+openai>=1.40.0
 opt_einsum==3.4.0
 optree==0.13.0
 packaging==24.1
@@ -50,6 +51,7 @@ pyparsing==3.2.0
 python-dateutil==2.9.0.post0
 python-decouple==3.8
 pytz==2024.2
+reportlab==4.2.5
 requests==2.32.3
 rich==13.9.3
 scikit-learn==1.5.2
@@ -69,4 +71,5 @@ vine==5.1.0
 wcwidth==0.2.13
 Werkzeug==3.0.6
 wheel==0.44.0
+whitenoise==6.9.0
 wrapt==1.16.0

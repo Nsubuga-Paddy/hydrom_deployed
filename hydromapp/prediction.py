@@ -36,7 +36,7 @@ def split_sequences(sequences, n_steps_in, n_steps_out):
 #Preprocessing function to return numpy array sequences data.
 def preprocess_data(data):
     # Extracting the relevant features (Note: We don't have dispatch and discharge. We shall be predicting water level )
-    features = ['precipitation', 'humidity', 'temperature', 'waterlevel']
+    features = ['precipitation', 'humidity', 'temperature', 'reservoir_waterlevel']
     df = pd.DataFrame(data.values_list(*features), columns=features)
 
     #separating variable

@@ -1,0 +1,18 @@
+# Railway / Nixpacks: one service builds Vite then runs Django (Gunicorn).
+[phases.setup]
+nixPkgs = ["nodejs_20"]
+
+[phases.install]
+cmds = [
+  "pip install -r requirements.txt",
+  "cd web && npm ci",
+]
+
+[phases.build]
+cmds = [
+  "cd web && npm run build",
+  "python manage.py collectstatic --noinput",
+]
+
+[start]
+cmd = "gunicorn hydromapp.wsgi --log-file -"

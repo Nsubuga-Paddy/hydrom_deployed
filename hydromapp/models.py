@@ -63,7 +63,26 @@ class DamPrecipitationState(models.Model):
 class RealTimeSensorData(models.Model):
     dam = models.ForeignKey(Dam, on_delete=models.CASCADE)
     timestamp = models.DateTimeField(auto_now_add=True)
-    waterlevel = models.DecimalField(max_digits=10, decimal_places=3, help_text="Water level in meters")
+    # Reservoir level is measured at the dam. Head/tail race sensors are upstream/downstream.
+    reservoir_waterlevel = models.DecimalField(
+        max_digits=10,
+        decimal_places=3,
+        help_text="Reservoir water level at the dam in meters",
+    )
+    head_race_waterlevel = models.DecimalField(
+        max_digits=10,
+        decimal_places=3,
+        null=True,
+        blank=True,
+        help_text="Head-race water level upstream of the reservoir in meters",
+    )
+    tail_race_waterlevel = models.DecimalField(
+        max_digits=10,
+        decimal_places=3,
+        null=True,
+        blank=True,
+        help_text="Tail-race water level downstream of the dam in meters",
+    )
     dispatch = models.PositiveIntegerField()
     discharge = models.PositiveIntegerField()
     precipitation = models.DecimalField(max_digits=10, decimal_places=2, help_text="Precipitation delta in mm (distinct value per interval)")
@@ -114,13 +133,13 @@ class Notification(models.Model):
         local_time = latest_data.timestamp.astimezone(local_timezone).strftime("%Y-%m-%d %H:%M:%S")
 
         if latest_data:
-            if latest_data.waterlevel > self.dam.active_vol and not self.notification_sent:
-                message = "{} water level in the reservior is above active volume of {} at {}".format(self.dam.name, self.dam.active_vol, local_time)
+            if latest_data.reservoir_waterlevel > self.dam.active_vol and not self.notification_sent:
+                message = "{} water level in the reservoir is above active volume of {} at {}".format(self.dam.name, self.dam.active_vol, local_time)
                 self.send_notification(message)
                 self.notification_sent = True
                 self.save()
-            elif latest_data.waterlevel < self.dam.active_vol and not self.notification_sent:
-                message = "{} water level in the reservior is below active volume of {} at {}".format(self.dam.name, self.dam.active_vol, local_time)
+            elif latest_data.reservoir_waterlevel < self.dam.active_vol and not self.notification_sent:
+                message = "{} water level in the reservoir is below active volume of {} at {}".format(self.dam.name, self.dam.active_vol, local_time)
                 self.send_notification(message)
                 self.notification_sent = True
                 self.save()
@@ -140,3 +159,71 @@ class Notification(models.Model):
                 email_list,
                 fail_silently = False,
             )
+
+
+class FeedbackSubmission(models.Model):
+    PRIORITY_CHOICES = [
+        ('low', 'Low - suggestion'),
+        ('normal', 'Normal - improvement'),
+        ('high', 'High - affects work'),
+        ('critical', 'Critical - urgent issue'),
+    ]
+
+    name = models.CharField(max_length=120)
+    email = models.EmailField(blank=True)
+    department = models.CharField(max_length=160, blank=True)
+    area = models.CharField(max_length=120)
+    priority = models.CharField(max_length=20, choices=PRIORITY_CHOICES, default='normal')
+    message = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_reviewed = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f'{self.name} — {self.area} ({self.priority})'
+
+
+class SystemReport(models.Model):
+    PERIOD_WEEKLY = 'weekly'
+    PERIOD_MONTHLY = 'monthly'
+    PERIOD_CHOICES = [
+        (PERIOD_WEEKLY, 'Weekly'),
+        (PERIOD_MONTHLY, 'Monthly'),
+    ]
+
+    STATUS_GENERATING = 'generating'
+    STATUS_READY = 'ready'
+    STATUS_PARTIAL = 'partial'
+    STATUS_FAILED = 'failed'
+    STATUS_CHOICES = [
+        (STATUS_GENERATING, 'Generating'),
+        (STATUS_READY, 'Ready'),
+        (STATUS_PARTIAL, 'Partial data'),
+        (STATUS_FAILED, 'Failed'),
+    ]
+
+    period_type = models.CharField(max_length=20, choices=PERIOD_CHOICES)
+    period_start = models.DateField()
+    period_end = models.DateField()
+    title = models.CharField(max_length=255)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_GENERATING)
+    completeness_percent = models.PositiveSmallIntegerField(default=0)
+    dams_covered = models.PositiveSmallIntegerField(default=0)
+    summary = models.TextField(blank=True)
+    summary_json = models.JSONField(default=dict, blank=True)
+    missing_data_highlights = models.JSONField(default=list, blank=True)
+    pdf_file = models.FileField(upload_to='system_reports/', blank=True)
+    narrative_provider = models.CharField(max_length=40, blank=True, default='template')
+    error_message = models.TextField(blank=True)
+    generated_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-period_end', '-generated_at', '-id']
+        unique_together = [('period_type', 'period_start', 'period_end')]
+
+    def __str__(self):
+        return self.title

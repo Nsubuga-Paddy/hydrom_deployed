@@ -13,31 +13,42 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 from pathlib import Path
 import os
 
+from decouple import Csv, Config, RepositoryEnv
+import dj_database_url
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Load secrets from project-root .env (next to manage.py)
+from decouple import config as default_config
+
+_env_file = BASE_DIR / '.env'
+_env_example = BASE_DIR / '.env.example'
+if _env_file.exists():
+    config = Config(RepositoryEnv(str(_env_file)))
+elif _env_example.exists():
+    config = Config(RepositoryEnv(str(_env_example)))
+else:
+    # Fall back to process environment if no dotenv file is present yet.
+    config = default_config
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-cxq(p-hxioag&)7##d81(q75k&7z&&fy4g+-1rwt-u9h$lonky'
+SECRET_KEY = config('SECRET_KEY')
+DEBUG = config('DEBUG', default=True, cast=bool)
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1', cast=Csv())
+CSRF_TRUSTED_ORIGINS = config(
+    'CSRF_TRUSTED_ORIGINS',
+    default='http://localhost:5173,http://127.0.0.1:5173',
+    cast=Csv(),
+)
+SESSION_COOKIE_SECURE = config('SESSION_COOKIE_SECURE', default=False, cast=bool)
+CSRF_COOKIE_SECURE = config('CSRF_COOKIE_SECURE', default=False, cast=bool)
 
-
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
-ALLOWED_HOSTS = ['hydromdeployed-production.up.railway.app','192.168.240.76', 'localhost', '127.0.0.1', '172.168.9.74']
-
-CSRF_TRUSTED_ORIGINS = [
-    'https://hydromdeployed-production.up.railway.app',
-]
-
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
-
-#API KEY
-API_KEY = "ad1e3ac111d3bf8f37688ea5c1549441d21d7684b8d4dcd9f74cb4d6de9d8366"
+# Device ingest API key
+API_KEY = config('API_KEY', default='')
 
 
 # Application definition
@@ -64,6 +75,7 @@ CHANNEL_LAYERS = {
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -92,35 +104,33 @@ TEMPLATES = [
     },
 ]
 
-#WSGI_APPLICATION = 'hydromapp.wsgi.application'
+WSGI_APPLICATION = 'hydromapp.wsgi.application'
 ASGI_APPLICATION = 'hydromapp.asgi.application'
 
 
 # Database
-# https://docs.djangoproject.com/en/4.2/ref/settings/#databases
+# Local development: use SQLite when DATABASE_URL is empty
+# Deployed (Railway): set DATABASE_URL for PostgreSQL
+DATABASE_URL = config('DATABASE_URL', default='') or os.environ.get('DATABASE_URL', '')
 
-import dj_database_url
-from decouple import config
-
-#DATABASE_URL=postgresql://postgres:ZvBmWaKqUisKnpxmJuyJtkYWeqNRrakf@junction.proxy.rlwy.net:58576/railway
-
-DATABASE_URL= "postgresql://postgres:ZvBmWaKqUisKnpxmJuyJtkYWeqNRrakf@junction.proxy.rlwy.net:58576/railway"
-
-
-DATABASES = {
-    'default': dj_database_url.config(
-
-        default=DATABASE_URL,
-        conn_max_age=600,
-        ssl_require=True
-
-    )
-}
+if DATABASE_URL:
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=DATABASE_URL,
+            conn_max_age=600,
+            ssl_require=True,
+        )
+    }
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 
 # Password validation
-# https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
-
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -138,56 +148,71 @@ AUTH_PASSWORD_VALIDATORS = [
 
 
 # Internationalization
-# https://docs.djangoproject.com/en/4.2/topics/i18n/
-
 LANGUAGE_CODE = 'en-us'
-
 TIME_ZONE = 'Africa/Nairobi'
-
 USE_I18N = True
-
 USE_TZ = True
 
-#AUTH_USER_MODEL = 'hydromapp.UserProfile'
 
-
-
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/4.2/howto/static-files/
-
+# Static files
 STATIC_URL = 'static/'
-
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
 ]
+STORAGES = {
+    'default': {
+        'BACKEND': 'django.core.files.storage.FileSystemStorage',
+    },
+    'staticfiles': {
+        # Compressed (not Manifest): Vite already content-hashes its assets.
+        'BACKEND': 'whitenoise.storage.CompressedStaticFilesStorage',
+    },
+}
 
-# Default primary key field type
-# https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
+# Built Vite SPA (web/ → static/frontend/)
+FRONTEND_INDEX = BASE_DIR / 'static' / 'frontend' / 'index.html'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# Media files (assistant-generated reports, uploads)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
 
-#Email configuration
+# Hydro-M Assistant / OpenAI
+OPENAI_API_KEY = config('OPENAI_API_KEY', default='')
+OPENAI_MODEL = config('OPENAI_MODEL', default='gpt-4o-mini')
+
+# Email configuration
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'paddynsubuga48@gmail.com'
-EMAIL_HOST_PASSWORD = 'OmaSewing4mi' #Store password safely
+EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')
+EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
+EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
+EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
 
 # Celery configuration
-
-CELERY_BROKER_URL = 'redis://localhost:6379/0'
-CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
-
+CELERY_BROKER_URL = config('CELERY_BROKER_URL', default='redis://localhost:6379/0')
+CELERY_RESULT_BACKEND = config('CELERY_RESULT_BACKEND', default='redis://localhost:6379/0')
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
-CELERY_TIMEZONE = 'UTC'
+CELERY_TIMEZONE = config('CELERY_TIMEZONE', default='Africa/Nairobi')
 
+try:
+    from celery.schedules import crontab
 
-
-
-
+    CELERY_BEAT_SCHEDULE = {
+        'generate-weekly-system-report': {
+            'task': 'hydromapp.generate_weekly_system_report',
+            # Mondays 06:00 Africa/Nairobi
+            'schedule': crontab(minute=0, hour=6, day_of_week=1),
+        },
+        'generate-monthly-system-report': {
+            'task': 'hydromapp.generate_monthly_system_report',
+            # 1st of month 06:15 Africa/Nairobi
+            'schedule': crontab(minute=15, hour=6, day_of_month=1),
+        },
+    }
+except Exception:  # noqa: BLE001
+    CELERY_BEAT_SCHEDULE = {}

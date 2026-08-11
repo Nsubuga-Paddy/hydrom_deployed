@@ -15,16 +15,17 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import path, re_path
 from django.conf import settings
 from django.conf.urls.static import static
 from . import views
 
 
-
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', views.home_view, name='home'),
+
+    # Legacy Django HTML UI (kept for reference / fallback)
+    path('legacy/', views.legacy_home_view, name='legacy_home'),
     path('new-frontend/', views.new_frontend_view, name='new_frontend'),
     path('about-us.html/', views.about_us, name='about'),
     path('contact-us.html/', views.contact_us, name='contact'),
@@ -39,11 +40,44 @@ urlpatterns = [
     path('logout.html/', views.logoutUser, name='logout'),
 
     path('api/sensor_data/<int:dam_id>/', views.get_rt_sensor_data, name='get_rt_sensor_data'),
+    path('api/dams/', views.api_dams_list, name='api_dams_list'),
+    path('api/dams/<str:dam_id>/realtime/', views.api_dam_realtime, name='api_dam_realtime'),
+    path(
+        'api/dams/<str:dam_id>/realtime/history/',
+        views.api_dam_realtime_history,
+        name='api_dam_realtime_history',
+    ),
+    path('api/download-data/availability/', views.api_download_availability, name='api_download_availability'),
+    path('api/download-data/export/', views.api_download_export, name='api_download_export'),
+    path('api/feedback/', views.api_feedback_submit, name='api_feedback_submit'),
+    path('api/assistant/chat/', views.api_assistant_chat, name='api_assistant_chat'),
+    path(
+        'api/assistant/reports/<str:filename>/',
+        views.api_assistant_report_download,
+        name='api_assistant_report_download',
+    ),
+    path('api/system-reports/', views.api_system_reports_list, name='api_system_reports_list'),
+    path(
+        'api/system-reports/<int:report_id>/',
+        views.api_system_report_detail,
+        name='api_system_report_detail',
+    ),
+    path(
+        'api/system-reports/<int:report_id>/pdf/',
+        views.api_system_report_pdf,
+        name='api_system_report_pdf',
+    ),
 
-    path('store-data/', views.store_data, name='store_data'), 
+    path('store-data/', views.store_data, name='store_data'),
     #path('store-data-http-proxy', views.store_data_http_proxy, name='store_data_http_proxy'),
+
+    # React SPA: home + client-side routes (must be last)
+    path('', views.spa_view, name='home'),
+    re_path(r'^(?!api/|admin/|static/|media/|store-data/).*$', views.spa_view),
 ]
 
-# Add static files serving during development
+# Add static/media serving during development (Whitenoise handles static in production)
 if settings.DEBUG:
-    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    # Prefer project static/ over STATIC_ROOT so Vite build assets are reachable before collectstatic
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.BASE_DIR / 'static')
