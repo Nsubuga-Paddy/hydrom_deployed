@@ -7,7 +7,6 @@ nixPkgs = ["python310", "python310Packages.pip", "nodejs_20"]
 
 [phases.install]
 cmds = [
-  "python3 -m ensurepip --upgrade",
   "python3 -m pip install --upgrade pip",
   "python3 -m pip install -r requirements.txt",
   "cd web && npm ci",
@@ -21,3 +20,4 @@ cmds = [
 
 [start]
 cmd = "gunicorn hydromapp.wsgi --log-file -"
+
