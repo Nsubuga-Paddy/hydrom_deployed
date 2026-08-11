@@ -1,8 +1,9 @@
-# Railway / Nixpacks: one service builds Vite then runs Django (Gunicorn).
-providers = ["python", "node"]
+# Railway / Nixpacks: Django (Python provider) + Vite build (Node from nixPkgs).
+# Do not enable the "node" provider alongside nodejs_* — it conflicts on corepack shims.
+providers = ["python"]
 
 [phases.setup]
-nixPkgs = ["python310", "nodejs_20"]
+nixPkgs = ["nodejs_20"]
 
 [phases.install]
 cmds = [
