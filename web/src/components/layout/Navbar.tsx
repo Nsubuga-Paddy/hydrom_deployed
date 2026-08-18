@@ -173,9 +173,10 @@ export function Navbar({ onMenuToggle, onOpenDams, menuButtonRef }: NavbarProps)
                 type="button"
                 className="dropdown-item"
                 onClick={() => {
-                  logout()
                   setUserOpen(false)
-                  navigate('/login', { replace: true })
+                  void logout().finally(() => {
+                    navigate('/login', { replace: true })
+                  })
                 }}
               >
                 <FontAwesomeIcon icon={faSignOutAlt} />

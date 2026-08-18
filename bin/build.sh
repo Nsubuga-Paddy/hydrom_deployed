@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# Build React (Vite) then collect Django static files for a single-service deploy.
+# Local helper: build React then collect Django static files.
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "$0")" && pwd)"
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
 echo "==> Building Vite frontend"

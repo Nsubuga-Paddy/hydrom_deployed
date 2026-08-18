@@ -37,17 +37,46 @@ class UserProfileInLine(admin.StackedInline):
     can_delete = False
     verbose_name_plural = 'UserProfile'
     fk_name = 'user'
+    fields = ('phone_number', 'department', 'station', 'role', 'dam')
 
 class UserAdmin(BaseUserAdmin):
     inlines = (UserProfileInLine, )
-    list_display = ("username", "email","get_phone_number", "get_dam", "is_staff")
+    list_display = (
+        'username',
+        'email',
+        'get_phone_number',
+        'get_department',
+        'get_station',
+        'get_dam',
+        'is_active',
+        'is_staff',
+        'date_joined',
+    )
+    list_filter = ('is_active', 'is_staff', 'is_superuser', 'date_joined')
+    list_editable = ('is_active',)
+    ordering = ('-date_joined',)
+    search_fields = ('username', 'email', 'first_name', 'last_name')
 
     def get_phone_number(self, obj):
-        return obj.userprofile.phone_number
+        profile = getattr(obj, 'userprofile', None)
+        return profile.phone_number if profile else ''
     get_phone_number.short_description = 'Phone Number'
 
+    def get_department(self, obj):
+        profile = getattr(obj, 'userprofile', None)
+        return profile.department if profile else ''
+    get_department.short_description = 'Department'
+
+    def get_station(self, obj):
+        profile = getattr(obj, 'userprofile', None)
+        return profile.station if profile else ''
+    get_station.short_description = 'Station'
+
     def get_dam(self, obj):
-        return obj.userprofile.dam.name if obj.userprofile.dam else None
+        profile = getattr(obj, 'userprofile', None)
+        if profile and profile.dam:
+            return profile.dam.name
+        return None
     get_dam.short_description = 'Dam'
 
     def get_inline_instances(self, request, obj=None):

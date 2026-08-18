@@ -5,7 +5,6 @@ from django.contrib.auth import get_user_model
 import pytz
 
 from django import forms
-from django.core.validators import RegexValidator
 import uuid
 
 from django.contrib.auth.models import User
@@ -31,22 +30,23 @@ class Dam(models.Model):
 
 #Creating a model for users to register
 class UserProfile(models.Model):
-    user  = models.OneToOneField(User, on_delete=models.CASCADE)
-    phone_number = models.CharField(
-        max_length = 10,
-        validators=[
-        RegexValidator(regex=r'^\d{10}$', message='Phone number must be exactly 10 digits.')
-    ])
-    dam = models.ForeignKey(Dam, on_delete=models.SET_NULL, null=True)
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    phone_number = models.CharField(max_length=20, blank=True, default='')
+    department = models.CharField(max_length=120, blank=True, default='')
+    station = models.CharField(max_length=120, blank=True, default='')
+    role = models.CharField(max_length=120, blank=True, default='')
+    dam = models.ForeignKey(Dam, on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self):
         return self.user.username
 
+
 @receiver(post_save, sender=User)
-def create_or_update_user_profile (sender, instance, created, **kwargs):
+def create_or_update_user_profile(sender, instance, created, **kwargs):
     if created:
-        UserProfile.objects.create(user=instance)
-    instance.userprofile.save()
+        UserProfile.objects.get_or_create(user=instance)
+    else:
+        UserProfile.objects.get_or_create(user=instance)
 
 
 # Tracks last cumulative precipitation per dam (for computing delta on next incoming reading)

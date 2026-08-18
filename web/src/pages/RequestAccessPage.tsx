@@ -1,13 +1,13 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
   faCircleCheck,
-  faEnvelope,
   faPaperPlane,
   faShieldHalved,
 } from '@fortawesome/free-solid-svg-icons'
+import { ApiError } from '../api/client'
 import { useAuth } from '../hooks/AuthContext'
 import { publicUrl } from '../utils/publicUrl'
 
@@ -16,6 +16,8 @@ const stations = ['Nalubaale HPP', 'Kiira HPP', 'Bujagali HPP', 'Isimba HPP', 'H
 export function RequestAccessPage() {
   const { requestAccess } = useAuth()
   const [submittedEmail, setSubmittedEmail] = useState('')
+  const [error, setError] = useState<string | null>(null)
+  const [submitting, setSubmitting] = useState(false)
   const [form, setForm] = useState({
     name: '',
     email: '',
@@ -27,29 +29,34 @@ export function RequestAccessPage() {
     confirmPassword: '',
   })
 
-  const passwordsMatch = form.password && form.password === form.confirmPassword
-  const mockLoginLink = useMemo(
-    () => `/verify-login?email=${encodeURIComponent(submittedEmail)}`,
-    [submittedEmail],
-  )
+  const passwordsMatch = Boolean(form.password && form.password === form.confirmPassword)
 
   function updateField(field: keyof typeof form, value: string) {
     setForm((current) => ({ ...current, [field]: value }))
   }
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (!passwordsMatch) return
 
-    requestAccess({
-      name: form.name.trim(),
-      email: form.email.trim(),
-      phone: form.phone.trim(),
-      department: form.department.trim(),
-      station: form.station,
-      role: form.role.trim(),
-    })
-    setSubmittedEmail(form.email.trim())
+    setError(null)
+    setSubmitting(true)
+    try {
+      await requestAccess({
+        name: form.name.trim(),
+        email: form.email.trim(),
+        phone: form.phone.trim(),
+        department: form.department.trim(),
+        station: form.station,
+        role: form.role.trim(),
+        password: form.password,
+      })
+      setSubmittedEmail(form.email.trim())
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Unable to create your account. Please try again.')
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   if (submittedEmail) {
@@ -60,28 +67,16 @@ export function RequestAccessPage() {
             <FontAwesomeIcon icon={faCircleCheck} />
           </div>
           <div className="auth-heading centered">
-            <p className="page-eyebrow">Verification email sent</p>
-            <h1>Check your email for the Hydro-M login link</h1>
+            <p className="page-eyebrow">Sign up complete</p>
+            <h1>Account created</h1>
             <p>
-              We sent a login link to <strong>{submittedEmail}</strong>. Opening that link verifies
-              the email and grants access to the platform.
+              <strong>{submittedEmail}</strong> is pending admin approval. You can sign in once it is
+              approved.
             </p>
-          </div>
-
-          <div className="auth-email-preview">
-            <span>
-              <FontAwesomeIcon icon={faEnvelope} />
-              Mock email preview
-            </span>
-            <p>
-              In production, this link will be delivered by email. For now, use the mock login link
-              below to simulate email verification.
-            </p>
-            <Link to={mockLoginLink}>Open mock login link</Link>
           </div>
 
           <p className="auth-switch">
-            Already verified? <Link to="/login">Return to login</Link>
+            <Link to="/login">Return to login</Link>
           </p>
         </section>
       </main>
@@ -101,7 +96,7 @@ export function RequestAccessPage() {
 
         <div className="auth-heading">
           <p className="page-eyebrow">Hydro-M Signup</p>
-          <p>Register a valid email to which a verification link will be sent.</p>
+          <p>Create an account. An admin must approve it before you can sign in.</p>
         </div>
 
         <form className="auth-form auth-form-grid" onSubmit={handleSubmit}>
@@ -123,6 +118,7 @@ export function RequestAccessPage() {
               value={form.email}
               onChange={(event) => updateField('email', event.target.value)}
               placeholder="name@example.com"
+              autoComplete="email"
               required
             />
           </label>
@@ -184,6 +180,7 @@ export function RequestAccessPage() {
               onChange={(event) => updateField('password', event.target.value)}
               placeholder="Create password"
               minLength={8}
+              autoComplete="new-password"
               required
             />
           </label>
@@ -196,6 +193,7 @@ export function RequestAccessPage() {
               onChange={(event) => updateField('confirmPassword', event.target.value)}
               placeholder="Confirm password"
               minLength={8}
+              autoComplete="new-password"
               required
             />
           </label>
@@ -204,9 +202,11 @@ export function RequestAccessPage() {
             <p className="auth-form-error">Passwords must match before the request is submitted.</p>
           ) : null}
 
-          <button type="submit" disabled={!passwordsMatch}>
+          {error ? <p className="auth-form-error">{error}</p> : null}
+
+          <button type="submit" disabled={!passwordsMatch || submitting}>
             <FontAwesomeIcon icon={faPaperPlane} />
-            Send verification email
+            {submitting ? 'Submitting…' : 'Submit'}
           </button>
         </form>
 

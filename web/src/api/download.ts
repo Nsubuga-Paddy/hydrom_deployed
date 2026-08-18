@@ -37,6 +37,7 @@ export async function fetchDownloadAvailability(
 ): Promise<DownloadAvailability> {
   const query = buildQuery({ dam, dataset })
   const response = await fetch(`${API_BASE_URL}/api/download-data/availability/?${query}`, {
+    credentials: 'include',
     headers: { Accept: 'application/json' },
   })
 
@@ -65,6 +66,7 @@ export async function downloadExportFile(params: DownloadExportParams): Promise<
   })
 
   const response = await fetch(`${API_BASE_URL}/api/download-data/export/?${query}`, {
+    credentials: 'include',
     headers: { Accept: 'text/csv, application/json' },
   })
 

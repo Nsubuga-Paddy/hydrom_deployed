@@ -1,122 +1,81 @@
-import { createContext, useCallback, useContext, useMemo, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
+import { ApiError } from '../api/client'
+import {
+  fetchCurrentUser,
+  loginWithPassword,
+  logoutSession,
+  signup as signupRequest,
+  type AuthUser,
+  type SignupPayload,
+} from '../api/auth'
 
-interface AuthUser {
-  name: string
-  email: string
-  verified: boolean
-  department?: string
-  station?: string
-  role?: string
-  phone?: string
-}
-
-interface PendingSignup {
-  name: string
-  email: string
-  department: string
-  station: string
-  role: string
-  phone: string
-}
+export type AuthStatus = 'loading' | 'authenticated' | 'anonymous'
 
 interface AuthContextValue {
   user: AuthUser | null
-  pendingSignup: PendingSignup | null
-  requestAccess: (signup: PendingSignup) => void
-  verifyFromEmailLink: (email: string) => void
-  login: (email: string, password: string) => void
-  logout: () => void
+  status: AuthStatus
+  requestAccess: (signup: SignupPayload) => Promise<{ email: string; message: string }>
+  login: (email: string, password: string) => Promise<AuthUser>
+  logout: () => Promise<void>
+  refresh: () => Promise<void>
 }
-
-const AUTH_STORAGE_KEY = 'hydro-m-auth-user'
-const SIGNUP_STORAGE_KEY = 'hydro-m-pending-signup'
 
 const AuthContext = createContext<AuthContextValue | null>(null)
 
-function readStoredUser(): AuthUser | null {
-  const stored = window.localStorage.getItem(AUTH_STORAGE_KEY)
-  if (!stored) return null
-
-  try {
-    return JSON.parse(stored) as AuthUser
-  } catch {
-    return null
-  }
-}
-
-function readPendingSignup(): PendingSignup | null {
-  const stored = window.localStorage.getItem(SIGNUP_STORAGE_KEY)
-  if (!stored) return null
-
-  try {
-    return JSON.parse(stored) as PendingSignup
-  } catch {
-    return null
-  }
-}
-
-function deriveNameFromEmail(email: string) {
-  return email.split('@')[0]?.replace(/[._-]+/g, ' ') || 'Hydro-M User'
-}
-
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<AuthUser | null>(() => readStoredUser())
-  const [pendingSignup, setPendingSignup] = useState<PendingSignup | null>(() => readPendingSignup())
+  const [user, setUser] = useState<AuthUser | null>(null)
+  const [status, setStatus] = useState<AuthStatus>('loading')
 
-  const persistUser = useCallback((nextUser: AuthUser | null) => {
+  const refresh = useCallback(async () => {
+    try {
+      const current = await fetchCurrentUser()
+      setUser(current)
+      setStatus(current?.verified ? 'authenticated' : 'anonymous')
+    } catch {
+      setUser(null)
+      setStatus('anonymous')
+    }
+  }, [])
+
+  useEffect(() => {
+    void refresh()
+  }, [refresh])
+
+  const requestAccess = useCallback(async (payload: SignupPayload) => {
+    const response = await signupRequest(payload)
+    return { email: response.email, message: response.message }
+  }, [])
+
+  const login = useCallback(async (email: string, password: string) => {
+    const nextUser = await loginWithPassword(email, password)
     setUser(nextUser)
-    if (nextUser) {
-      window.localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(nextUser))
-    } else {
-      window.localStorage.removeItem(AUTH_STORAGE_KEY)
-    }
+    setStatus(nextUser.verified ? 'authenticated' : 'anonymous')
+    return nextUser
   }, [])
 
-  const requestAccess = useCallback((signup: PendingSignup) => {
-    setPendingSignup(signup)
-    window.localStorage.setItem(SIGNUP_STORAGE_KEY, JSON.stringify(signup))
-  }, [])
-
-  const verifyFromEmailLink = useCallback((email: string) => {
-    const signup = pendingSignup?.email === email ? pendingSignup : null
-    const nextUser = {
-      name: signup?.name || deriveNameFromEmail(email),
-      email,
-      verified: true,
-      department: signup?.department,
-      station: signup?.station,
-      role: signup?.role,
-      phone: signup?.phone,
+  const logout = useCallback(async () => {
+    try {
+      await logoutSession()
+    } catch (err) {
+      if (!(err instanceof ApiError && err.status === 403)) {
+        // Still clear local session state if the server session is already gone.
+      }
     }
-
-    persistUser(nextUser)
-    setPendingSignup(null)
-    window.localStorage.removeItem(SIGNUP_STORAGE_KEY)
-  }, [pendingSignup, persistUser])
-
-  const login = useCallback((email: string) => {
-    persistUser({
-      name: pendingSignup?.email === email ? pendingSignup.name : deriveNameFromEmail(email),
-      email,
-      verified: true,
-    })
-  }, [pendingSignup, persistUser])
-
-  const logout = useCallback(() => {
-    persistUser(null)
-  }, [persistUser])
+    setUser(null)
+    setStatus('anonymous')
+  }, [])
 
   const value = useMemo(
     () => ({
       user,
-      pendingSignup,
+      status,
       requestAccess,
-      verifyFromEmailLink,
       login,
       logout,
+      refresh,
     }),
-    [user, pendingSignup, requestAccess, verifyFromEmailLink, login, logout],
+    [user, status, requestAccess, login, logout, refresh],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

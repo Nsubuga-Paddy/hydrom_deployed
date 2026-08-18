@@ -57,8 +57,16 @@ function DefaultDamRedirect({ view }: { view: DamViewMode }) {
 }
 
 function ProtectedAppLayout() {
-  const { user } = useAuth()
+  const { user, status } = useAuth()
   const location = useLocation()
+
+  if (status === 'loading') {
+    return (
+      <div className="dam-monitor-api-banner" role="status">
+        <p>Checking your Hydro-M session…</p>
+      </div>
+    )
+  }
 
   if (!user?.verified) {
     return <Navigate to="/login" replace state={{ from: location.pathname }} />

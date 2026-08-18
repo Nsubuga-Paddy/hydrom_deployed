@@ -312,7 +312,7 @@ function DamMonitorContent({
 
         {view === 'predictions' && (
           <div className="dam-monitor-predictions">
-            <ReservoirPredictionPanel dam={realtimeDam} station={channelStation} />
+            <ReservoirPredictionPanel dam={realtimeDam} />
           </div>
         )}
       </section>

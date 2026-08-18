@@ -39,6 +39,15 @@ import numpy as np
 import pandas as pd
 import io
 import base64
+
+from .auth_api import (  # noqa: F401 — re-exported for urls.py
+    api_auth_csrf,
+    api_auth_login,
+    api_auth_logout,
+    api_auth_me,
+    api_auth_signup,
+    api_auth_verify,
+)
 # create a new view that retrieves the dams from the database and passes them to a context variable.
 
 def home_view(request):
@@ -386,6 +395,47 @@ def api_dam_realtime(request, dam_id):
     latest = RealTimeSensorData.objects.filter(dam=dam).order_by('-timestamp').first()
     payload = serialize_dam(dam, latest)
     return JsonResponse(payload)
+
+
+def api_dam_predictions(request, dam_id):
+    """
+    GET /api/dams/<dam_id>/predictions/?refresh=1
+
+    Returns observed recent reservoir levels plus the live LSTM 5-hour forecast.
+    Regenerates when missing/stale, or when refresh=1.
+    """
+    from .prediction import get_or_refresh_forecast
+
+    dam = resolve_dam(dam_id)
+    force = str(request.GET.get('refresh') or '').strip().lower() in {'1', 'true', 'yes'}
+    payload = get_or_refresh_forecast(dam, force=force)
+    payload['id'] = dam_to_slug(dam)
+    status = 200 if payload.get('status') != 'error' else 503
+    return JsonResponse(payload, status=status)
+
+
+def api_dam_predictions_run(request, dam_id):
+    """
+    POST /api/dams/<dam_id>/predictions/run/
+
+    Force a fresh LSTM forecast for the dam.
+    """
+    from .prediction import PredictionError, run_forecast_for_dam
+
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+    dam = resolve_dam(dam_id)
+    try:
+        result = run_forecast_for_dam(dam)
+    except PredictionError as exc:
+        return JsonResponse({'error': str(exc)}, status=400)
+    except Exception as exc:  # noqa: BLE001
+        return JsonResponse({'error': f'Forecast engine error: {exc}'}, status=500)
+
+    result['id'] = dam_to_slug(dam)
+    result['name'] = dam.name
+    return JsonResponse(result)
 
 
 HISTORY_RANGE_HOURS = {
@@ -929,6 +979,14 @@ def store_data(request):
                 precipitation=round(precipitation_delta, 2)  # Store delta in mm
             )
 
+            # Refresh LSTM forecast in the background of the request (best-effort).
+            try:
+                from .prediction import try_run_forecast_after_ingest
+
+                try_run_forecast_after_ingest(int(dam_id))
+            except Exception:  # noqa: BLE001
+                pass
+
             return HttpResponse('Data stored successfully.')
 
         except Exception as e:
@@ -1090,100 +1148,6 @@ def logoutUser(request):
     logout(request)
     return redirect('login')
 
-#FUNCTIONS FOR PROCESSING DATA AND LOADING PPREDICTION MODEL
-#Loading the model
-def load_model():
-    from keras.models import model_from_json
-    #Loading the model architecture from the JSON file
-    with open('pred_model.json','r') as json_file:
-        loaded_model_json = json_file.read()
-    loaded_model = model_from_json(loaded_model_json)
-
-    #Loading the model weights
-    loaded_model.load_weights("pred_model_weights.h5")
-
-    #Compiling the model
-    loaded_model.compile(loss='binary_crossentropy',optimizer='adam', metrics=['accuracy'])
-
-    return loaded_model
-
-
-from numpy import array
-# split a multivariate sequence into samples
-def split_sequences(sequences, n_steps_in, n_steps_out):
-    X, y = list(), list()
-    for i in range(len(sequences)):
-        # find the end of this pattern
-        end_ix = i + n_steps_in
-        out_end_ix = end_ix + n_steps_out-1
-        # check if we are beyond the dataset
-        if out_end_ix >= len(sequences):
-            break
-        # gather input and output parts of the pattern
-        seq_x, seq_y = sequences[i:end_ix, :-1], sequences[end_ix-1:out_end_ix, -1]
-        X.append(seq_x)
-        y.append(seq_y)
-    return np.array(X), np.array(y)
-
-
-#Preprocessing function to return numpy array sequences data.
-def preprocess_data(data):
-    from sklearn.preprocessing import MinMaxScaler
-    # Extracting the relevant features (Note: We don't have dispatch and discharge. 
-    # We shall be predicting water level )
-    features = ['precipitation', 'humidity', 'temperature', 'reservoir_waterlevel']
-    df = pd.DataFrame(data.values_list(*features), columns=features)
-
-    #separating variable
-    df_input = df.iloc[:,:-1]
-    df_target = df.iloc[:,-1]
-    #converting the variables into numpy arrays
-    df_input = df_input.to_numpy()
-    df_target = df_target.to_numpy()
-    #converting the output values into 2D format
-    df_target = df_target[:,np.newaxis]
-
-    #Normalising the input and output variables using the MinMaxScaler
-    scaler = MinMaxScaler()
-    df_input_scaled = scaler.fit_transform(df_input)
-    df_target_scaled = scaler.fit_transform(df_target)
-
-    #combining the input and output variables
-    df_scaled = np.hstack((df_input_scaled,df_target_scaled))
-
-    #choosing time step period
-    n_steps_in, n_steps_out = 24, 5
-    X, y = split_sequences(df_scaled, n_steps_in, n_steps_out)
-   
-    return X, y
-
-#Function that makes the predictions
-def make_predicitions_and_store(data, dam_id):
-    #Selecting the dam
-    dam = get_object_or_404(Dam, pk=dam_id)
-    #Loading the model
-    model = load_model()
-
-    data = RealTimeSensorData.objects.filter(dam=dam).order_by('timestamp').values_list(
-        'reservoir_waterlevel', flat=True
-    )
-    X,y = preprocess_data(data)
-    #Making predictions
-    predictions = model.predict(X)
-
-    predictons2 = scaler.inverse_transform(predictions)
-
-    timestamps = pd.date_range(start=pd.to_datetime('now'), periods=len(predictions), freq='H')
-
-    for i, prediction in enumerate(predictions2):
-        for value in prediction:
-            Prediction.objects.create(
-                dam=dam,
-                timestamp=timestamps[i],
-                waterlevel_prediction=round(value, 2)
-            )
-
-    pass
 
 def new_frontend_view(request):
     """View for the new frontend"""

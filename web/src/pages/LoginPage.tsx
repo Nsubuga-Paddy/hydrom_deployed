@@ -3,24 +3,45 @@ import type { FormEvent } from 'react'
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faArrowRightToBracket, faEnvelope, faLock, faShieldHalved } from '@fortawesome/free-solid-svg-icons'
+import { ApiError } from '../api/client'
 import { useAuth } from '../hooks/AuthContext'
 import { publicUrl } from '../utils/publicUrl'
 
 export function LoginPage() {
-  const { user, login } = useAuth()
+  const { user, status, login } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [error, setError] = useState<string | null>(null)
+  const [submitting, setSubmitting] = useState(false)
+
+  if (status === 'loading') {
+    return (
+      <main className="auth-page">
+        <section className="auth-card">
+          <p>Checking your session…</p>
+        </section>
+      </main>
+    )
+  }
 
   if (user?.verified) {
     return <Navigate to="/" replace />
   }
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    login(email.trim(), password)
-    navigate((location.state as { from?: string } | null)?.from || '/', { replace: true })
+    setError(null)
+    setSubmitting(true)
+    try {
+      await login(email.trim(), password)
+      navigate((location.state as { from?: string } | null)?.from || '/', { replace: true })
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Unable to sign in. Please try again.')
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
@@ -42,14 +63,15 @@ export function LoginPage() {
 
         <form className="auth-form" onSubmit={handleSubmit}>
           <label>
-            Email address
-            <span>
+            Email
+            <span className="auth-input-icon">
               <FontAwesomeIcon icon={faEnvelope} />
               <input
                 type="email"
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
                 placeholder="name@example.com"
+                autoComplete="email"
                 required
               />
             </span>
@@ -57,26 +79,29 @@ export function LoginPage() {
 
           <label>
             Password
-            <span>
+            <span className="auth-input-icon">
               <FontAwesomeIcon icon={faLock} />
               <input
                 type="password"
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
                 placeholder="Enter password"
+                autoComplete="current-password"
                 required
               />
             </span>
           </label>
 
-          <button type="submit">
+          {error ? <p className="auth-form-error">{error}</p> : null}
+
+          <button type="submit" disabled={submitting}>
             <FontAwesomeIcon icon={faArrowRightToBracket} />
-            Login
+            {submitting ? 'Signing in…' : 'Sign in'}
           </button>
         </form>
 
         <p className="auth-switch">
-          New to Hydro-M? <Link to="/request-access">Sign up</Link>
+          Need an account? <Link to="/request-access">Sign up</Link>
         </p>
       </section>
     </main>
