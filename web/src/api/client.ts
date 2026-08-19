@@ -20,24 +20,44 @@ async function ensureCsrfCookie(): Promise<string | null> {
   let token = readCookie('csrftoken')
   if (token) return token
 
-  await fetch(`${API_BASE_URL}/api/auth/csrf/`, {
+  const response = await fetch(`${API_BASE_URL}/api/auth/csrf/`, {
     method: 'GET',
     credentials: 'include',
     headers: { Accept: 'application/json' },
   })
   token = readCookie('csrftoken')
-  return token
+  if (token) return token
+  try {
+    const body = (await response.json()) as { csrfToken?: string; csrf_token?: string }
+    return body.csrfToken || body.csrf_token || null
+  } catch {
+    return null
+  }
+}
+
+function fallbackErrorMessage(status: number): string {
+  if (status === 400) {
+    return 'This request was rejected by the server. Refresh the page and try again.'
+  }
+  if (status === 403) {
+    return 'Access denied. Refresh the page and try again. If you just signed up, wait for administrator approval.'
+  }
+  if (status === 404) {
+    return 'No account was found for that email. Please sign up first.'
+  }
+  if (status === 500 || status === 502 || status === 503) {
+    return 'The server could not complete this request. Please try again in a moment.'
+  }
+  return `Request failed (${status})`
 }
 
 async function parseError(response: Response): Promise<string> {
-  let detail = `Request failed (${response.status})`
   try {
     const body = (await response.json()) as { detail?: string; error?: string; message?: string }
-    detail = body.detail || body.error || body.message || detail
+    return body.detail || body.error || body.message || fallbackErrorMessage(response.status)
   } catch {
-    // ignore non-JSON error bodies
+    return fallbackErrorMessage(response.status)
   }
-  return detail
 }
 
 export async function apiGet<T>(path: string, init?: RequestInit): Promise<T> {

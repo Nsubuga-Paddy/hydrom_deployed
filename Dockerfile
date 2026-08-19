@@ -33,14 +33,14 @@ COPY . .
 # Vite emits to static/frontend/ (see web/vite.config.ts)
 COPY --from=frontend /app/static/frontend /app/static/frontend
 
-# collectstatic needs Django settings; use throwaway values at build time only.
-ENV SECRET_KEY=build-time-collectstatic-only \
+# collectstatic needs Django settings. Keep these on the RUN line so they do
+# not leak into the runtime container and override Railway (especially CSRF).
+RUN SECRET_KEY=build-time-collectstatic-only \
     DEBUG=False \
     ALLOWED_HOSTS=* \
     CSRF_TRUSTED_ORIGINS=http://localhost \
-    DATABASE_URL=
-
-RUN python manage.py collectstatic --noinput
+    DATABASE_URL= \
+    python manage.py collectstatic --noinput
 
 COPY bin/docker-entrypoint.sh /docker-entrypoint.sh
 RUN chmod +x /docker-entrypoint.sh

@@ -1,6 +1,8 @@
 """Session-based auth API helpers for the React SPA."""
 from __future__ import annotations
 
+import logging
+
 from django.contrib.auth import authenticate, get_user_model, login, logout
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
@@ -13,11 +15,39 @@ from django.views.decorators.http import require_GET, require_POST
 from .models import Dam, UserProfile
 
 User = get_user_model()
+logger = logging.getLogger(__name__)
 
 
 def _json_error(message, status=400, **extra):
     payload = {'error': message, **extra}
     return JsonResponse(payload, status=status)
+
+
+def csrf_failure(request, reason=''):
+    """Return JSON for SPA login instead of Django's HTML CSRF page."""
+    return JsonResponse(
+        {
+            'error': 'Sign-in was blocked by a security check. Refresh the page and try again.',
+            'code': 'csrf',
+        },
+        status=403,
+    )
+
+
+def api_bad_request(request, exception):
+    return JsonResponse(
+        {
+            'error': 'This request was rejected. The site domain may not be allowed. Please refresh and try again.',
+        },
+        status=400,
+    )
+
+
+def api_server_error(request):
+    return JsonResponse(
+        {'error': 'The server could not complete this request. Please try again in a moment.'},
+        status=500,
+    )
 
 
 def _parse_json(request):
@@ -30,7 +60,10 @@ def _parse_json(request):
 
 
 def serialize_auth_user(user):
-    profile = getattr(user, 'userprofile', None)
+    try:
+        profile = user.userprofile
+    except UserProfile.DoesNotExist:
+        profile = None
     full_name = (user.get_full_name() or '').strip()
     return {
         'name': full_name or user.username,
@@ -62,7 +95,8 @@ def _match_dam_for_station(station: str):
 @require_GET
 def api_auth_csrf(request):
     """Ensure the csrftoken cookie is set for SPA POSTs."""
-    return JsonResponse({'csrfToken': get_token(request)})
+    token = get_token(request)
+    return JsonResponse({'csrfToken': token, 'csrf_token': token})
 
 
 @require_GET
@@ -150,18 +184,23 @@ def api_auth_login(request):
     if payload is None:
         return _json_error('Invalid JSON body')
 
-    email = str(payload.get('email') or '').strip().lower()
+    identifier = str(payload.get('email') or payload.get('username') or '').strip()
     password = str(payload.get('password') or '')
-    if not email or not password:
-        return _json_error('Email and password are required.')
+    if not identifier or not password:
+        return _json_error('Email (or username) and password are required.')
 
-    try:
-        existing = User.objects.get(email__iexact=email)
-    except User.DoesNotExist:
-        try:
-            existing = User.objects.get(username__iexact=email)
-        except User.DoesNotExist:
-            return _json_error('Invalid email or password.', status=401)
+    lookup = identifier.lower()
+    existing = (
+        User.objects.filter(email__iexact=lookup).first()
+        or User.objects.filter(username__iexact=identifier).first()
+        or User.objects.filter(username__iexact=lookup).first()
+    )
+    if existing is None:
+        return _json_error(
+            'No account found for this email. Please sign up first.',
+            status=404,
+            code='email_not_registered',
+        )
 
     # Check password even for inactive users so we don't leak existence poorly,
     # but give a clear pending-approval message when credentials are correct.
@@ -174,11 +213,18 @@ def api_auth_login(request):
             status=403,
         )
 
-    user = authenticate(request, username=existing.username, password=password)
-    if user is None:
-        return _json_error('Invalid email or password.', status=401)
+    try:
+        user = authenticate(request, username=existing.username, password=password)
+        if user is None:
+            return _json_error('Invalid email or password.', status=401)
+        login(request, user)
+    except Exception:
+        logger.exception('Failed to create a login session for %s', existing.username)
+        return _json_error(
+            'The server could not start your session. Please refresh the page and try again.',
+            status=500,
+        )
 
-    login(request, user)
     return JsonResponse({'user': serialize_auth_user(user)})
 
 

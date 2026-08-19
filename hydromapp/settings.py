@@ -37,22 +37,73 @@ else:
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 SECRET_KEY = config('SECRET_KEY')
-DEBUG = config('DEBUG', default=True, cast=bool)
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1', cast=Csv())
-CSRF_TRUSTED_ORIGINS = config(
+# Default DEBUG to False on Railway so POST/login errors return JSON, not an HTML traceback.
+_on_railway = bool(os.environ.get('RAILWAY_ENVIRONMENT') or os.environ.get('RAILWAY_PROJECT_ID'))
+DEBUG = config('DEBUG', default=not _on_railway, cast=bool)
+
+
+def _csv_values(name, default):
+    raw = os.environ.get(name)
+    if raw is None or str(raw).strip() == '':
+        raw = config(name, default=default)
+    if isinstance(raw, (list, tuple)):
+        return [str(item).strip() for item in raw if str(item).strip()]
+    return [part.strip() for part in str(raw).split(',') if part.strip()]
+
+
+def _hostname(value):
+    text = (value or '').strip()
+    if not text:
+        return ''
+    text = text.replace('https://', '').replace('http://', '').split('/')[0]
+    return text.split(':')[0].strip().lstrip('.')
+
+
+ALLOWED_HOSTS = _csv_values('ALLOWED_HOSTS', 'localhost,127.0.0.1')
+CSRF_TRUSTED_ORIGINS = _csv_values(
     'CSRF_TRUSTED_ORIGINS',
-    default='http://localhost:5173,http://127.0.0.1:5173',
-    cast=Csv(),
+    'http://localhost:5173,http://127.0.0.1:5173',
 )
-SESSION_COOKIE_SECURE = config('SESSION_COOKIE_SECURE', default=False, cast=bool)
-CSRF_COOKIE_SECURE = config('CSRF_COOKIE_SECURE', default=False, cast=bool)
+
+# Always allow the live Hydro-M domains so login POSTs are not blocked by
+# a missing Railway variable or a Docker build-time CSRF_TRUSTED_ORIGINS.
+_extra_hosts = [
+    'hydrom-ug.com',
+    'www.hydrom-ug.com',
+    '.up.railway.app',
+    _hostname(os.environ.get('RAILWAY_PUBLIC_DOMAIN', '')),
+    _hostname(os.environ.get('RAILWAY_STATIC_URL', '')),
+]
+for host in _extra_hosts:
+    if host and host not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append(host)
+
+_extra_origins = [
+    'https://hydrom-ug.com',
+    'https://www.hydrom-ug.com',
+    'https://*.up.railway.app',
+]
+_public_host = _hostname(os.environ.get('RAILWAY_PUBLIC_DOMAIN', ''))
+if _public_host:
+    _extra_origins.append(f'https://{_public_host}')
+for origin in _extra_origins:
+    if origin not in CSRF_TRUSTED_ORIGINS:
+        CSRF_TRUSTED_ORIGINS.append(origin)
+
+# Railway terminates TLS at the proxy. Without this, CSRF can reject HTTPS POSTs.
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+USE_X_FORWARDED_HOST = True
+
+SESSION_COOKIE_SECURE = config('SESSION_COOKIE_SECURE', default=not DEBUG, cast=bool)
+CSRF_COOKIE_SECURE = config('CSRF_COOKIE_SECURE', default=not DEBUG, cast=bool)
 # Allow the React SPA to read the CSRF cookie for fetch() POSTs.
 CSRF_COOKIE_HTTPONLY = False
 SESSION_COOKIE_SAMESITE = 'Lax'
 CSRF_COOKIE_SAMESITE = 'Lax'
+CSRF_FAILURE_VIEW = 'hydromapp.auth_api.csrf_failure'
 
 # Public site URL used in emails/links when needed (optional).
-FRONTEND_BASE_URL = config('FRONTEND_BASE_URL', default='')
+FRONTEND_BASE_URL = os.environ.get('FRONTEND_BASE_URL') or config('FRONTEND_BASE_URL', default='')
 
 # Device ingest API key
 API_KEY = config('API_KEY', default='')
@@ -116,9 +167,9 @@ ASGI_APPLICATION = 'hydromapp.asgi.application'
 
 
 # Database
-# Local development: use SQLite when DATABASE_URL is empty
-# Deployed (Railway): set DATABASE_URL for PostgreSQL
-DATABASE_URL = config('DATABASE_URL', default='') or os.environ.get('DATABASE_URL', '')
+# Prefer Railway/runtime env over a local .env file.
+# Local development: use SQLite when DATABASE_URL is empty.
+DATABASE_URL = os.environ.get('DATABASE_URL') or config('DATABASE_URL', default='')
 
 if DATABASE_URL:
     DATABASES = {

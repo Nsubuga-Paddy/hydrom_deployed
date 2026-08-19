@@ -57,11 +57,16 @@ urlpatterns = [
     path('api/download-data/export/', views.api_download_export, name='api_download_export'),
     path('api/feedback/', views.api_feedback_submit, name='api_feedback_submit'),
     path('api/auth/csrf/', views.api_auth_csrf, name='api_auth_csrf'),
+    path('api/auth/csrf', views.api_auth_csrf),
     path('api/auth/me/', views.api_auth_me, name='api_auth_me'),
+    path('api/auth/me', views.api_auth_me),
     path('api/auth/signup/', views.api_auth_signup, name='api_auth_signup'),
+    path('api/auth/signup', views.api_auth_signup),
     path('api/auth/verify/', views.api_auth_verify, name='api_auth_verify'),
     path('api/auth/login/', views.api_auth_login, name='api_auth_login'),
+    path('api/auth/login', views.api_auth_login),
     path('api/auth/logout/', views.api_auth_logout, name='api_auth_logout'),
+    path('api/auth/logout', views.api_auth_logout),
     path('api/assistant/chat/', views.api_assistant_chat, name='api_assistant_chat'),
     path(
         'api/assistant/reports/<str:filename>/',
@@ -87,6 +92,9 @@ urlpatterns = [
     path('', views.spa_view, name='home'),
     re_path(r'^(?!api/|admin/|static/|media/|store-data/).*$', views.spa_view),
 ]
+
+handler400 = 'hydromapp.auth_api.api_bad_request'
+handler500 = 'hydromapp.auth_api.api_server_error'
 
 # Add static/media serving during development (Whitenoise handles static in production)
 if settings.DEBUG:

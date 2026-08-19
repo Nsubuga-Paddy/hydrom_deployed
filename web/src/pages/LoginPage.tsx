@@ -38,7 +38,25 @@ export function LoginPage() {
       await login(email.trim(), password)
       navigate((location.state as { from?: string } | null)?.from || '/', { replace: true })
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Unable to sign in. Please try again.')
+      if (err instanceof ApiError) {
+        if (err.status === 400) {
+          setError(
+            err.message ||
+              'Sign-in was blocked by the server. Refresh the page and try again.',
+          )
+        } else if (err.status === 403) {
+          setError(
+            err.message ||
+              'Access denied. If you recently signed up, wait for an administrator to approve your account.',
+          )
+        } else if (err.status >= 500) {
+          setError(err.message || 'The server failed while signing you in. Please try again in a moment.')
+        } else {
+          setError(err.message)
+        }
+      } else {
+        setError('Unable to sign in. Please try again.')
+      }
     } finally {
       setSubmitting(false)
     }
@@ -63,15 +81,15 @@ export function LoginPage() {
 
         <form className="auth-form" onSubmit={handleSubmit}>
           <label>
-            Email
+            Email or username
             <span className="auth-input-icon">
               <FontAwesomeIcon icon={faEnvelope} />
               <input
-                type="email"
+                type="text"
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
-                placeholder="name@example.com"
-                autoComplete="email"
+                placeholder="name@example.com or admin username"
+                autoComplete="username"
                 required
               />
             </span>
